@@ -1,0 +1,30 @@
+{"q": "¿Qué combina un sistema RAG?", "expected": "recuperación y generación", "source": "rag-intro.md"}
+{"q": "¿Qué se recupera primero en un RAG?", "expected": "chunks más parecidos", "source": "rag-intro.md"}
+{"q": "¿Cómo responde el LLM en un RAG?", "expected": "citando esas fuentes", "source": "rag-intro.md"}
+{"q": "¿Qué es un sistema RAG bilingüe?", "expected": "recuperación y generación", "source": "rag-intro.md"}
+{"q": "¿Para qué sirven los chunks en RAG?", "expected": "parecidos a la pregunta", "source": "rag-intro.md"}
+{"q": "¿Qué hace el LLM con las fuentes?", "expected": "responde citando", "source": "rag-intro.md"}
+{"q": "Explica el flujo de un RAG", "expected": "recuperan los chunks", "source": "rag-intro.md"}
+{"q": "¿Qué significa RAG?", "expected": "recuperación", "source": "rag-intro.md"}
+{"q": "¿De dónde saca la respuesta el sistema RAG?", "expected": "fuentes", "source": "rag-intro.md"}
+{"q": "¿Qué se compara con la pregunta?", "expected": "chunks", "source": "rag-intro.md"}
+{"q": "¿Qué son los gatos?", "expected": "curiosos y dormilones", "source": "gatos.md"}
+{"q": "¿Cómo son los gatos?", "expected": "curiosos", "source": "gatos.md"}
+{"q": "¿Qué evita el overlap en chunking?", "expected": "cortar frases", "source": "gatos.md"}
+{"q": "¿Sobre qué no hay que cortar frases?", "expected": "gatos", "source": "gatos.md"}
+{"q": "Si pregunto por gatos, ¿qué debe pasar?", "expected": "recuperar este párrafo", "source": "gatos.md"}
+{"q": "¿Qué animal es dormilón?", "expected": "gatos", "source": "gatos.md"}
+{"q": "¿Qué animal es curioso?", "expected": "gatos", "source": "gatos.md"}
+{"q": "¿Qué técnica evita cortar frases a la mitad?", "expected": "overlap", "source": "gatos.md"}
+{"q": "¿Dónde se habla de gatos curiosos?", "expected": "dormilones", "source": "gatos.md"}
+{"q": "Describe a los gatos del corpus", "expected": "curiosos y dormilones", "source": "gatos.md"}
+{"q": "¿Qué combina la recuperación con la generación?", "expected": "RAG", "source": "rag-intro.md"}
+{"q": "¿Quién cita las fuentes al responder?", "expected": "LLM", "source": "rag-intro.md"}
+{"q": "¿Qué son los chunks más parecidos?", "expected": "pregunta", "source": "rag-intro.md"}
+{"q": "¿En qué idioma está el doc de RAG?", "expected": "recuperación", "source": "rag-intro.md"}
+{"q": "¿El RAG genera o solo recupera?", "expected": "generación", "source": "rag-intro.md"}
+{"q": "¿Los gatos duermen mucho?", "expected": "dormilones", "source": "gatos.md"}
+{"q": "¿El overlap para qué sirve?", "expected": "evita cortar", "source": "gatos.md"}
+{"q": "¿Qué párrafo habla de frases sobre gatos?", "expected": "mitad", "source": "gatos.md"}
+{"q": "¿Qué debe recuperar el sistema si preguntas por gatos?", "expected": "párrafo", "source": "gatos.md"}
+{"q": "Resume el doc de gatos", "expected": "curiosos", "source": "gatos.md"}
