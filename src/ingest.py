@@ -14,6 +14,10 @@ from src.embed import DIM, embed
 
 def get_client() -> QdrantClient:
     load_dotenv()
+    local_path = os.getenv("QDRANT_LOCAL_PATH", "")
+    if local_path:
+        # Modo local sin Docker (CI / verificación offline).
+        return QdrantClient(path=local_path)
     url = os.getenv("QDRANT_URL", "http://localhost:6333")
     return QdrantClient(url=url, timeout=60)
 
@@ -26,19 +30,78 @@ def ensure_collection(client: QdrantClient, name: str):
         )
 
 
+def read_pdf_text(path: pathlib.Path) -> str:
+    """Extract text from a PDF: pypdf first, pdfplumber fallback.
+
+    Returns "" (warns) if both fail so one bad file never kills ingest.
+    """
+    try:
+        from pypdf import PdfReader
+
+        reader = PdfReader(str(path))
+        text = "\n".join((p.extract_text() or "") for p in reader.pages)
+        if text.strip():
+            return text
+    except Exception as e:
+        print(f"pypdf falló en {path.name} ({e.__class__.__name__}), pruebo pdfplumber")
+    try:
+        import pdfplumber
+
+        with pdfplumber.open(str(path)) as pdf:
+            text = "\n".join((p.extract_text() or "") for p in pdf.pages)
+        if text.strip():
+            return text
+    except Exception as e:
+        print(f"pdfplumber falló en {path.name} ({e.__class__.__name__})")
+    print(f"WARN: sin texto extraíble en {path}")
+    return ""
+
+
+def read_doc_text(path: pathlib.Path) -> str:
+    if path.suffix.lower() == ".pdf":
+        return read_pdf_text(path)
+    return path.read_text(encoding="utf-8")
+
+
+LANG_DIRS = {
+    # EN: demo legacy + los 26 PDFs originales del corpus Acme.
+    "en": ["data/en", "data/acme"],
+    # ES: demo legacy + los 26 PDFs Acme traducidos (gemelos de los EN).
+    "es": ["data/es", "data/acme-es"],
+}
+
+
+def collect_files(data_dir: pathlib.Path) -> list[pathlib.Path]:
+    """All ingestible docs under data_dir (recursive: keeps Acme Dept/ layout)."""
+    files = [f for f in sorted(data_dir.rglob("*")) if f.suffix.lower() in (".md", ".pdf") and f.is_file()]
+    return files
+
+
+def collect_lang_files(lang: str) -> list[pathlib.Path]:
+    files: list[pathlib.Path] = []
+    for d in LANG_DIRS[lang]:
+        p = pathlib.Path(d)
+        if p.exists():
+            files.extend(collect_files(p))
+    return sorted(files)
+
+
 def ingest_lang(lang: str):
     assert lang in ("es", "en"), "lang must be es|en"
     client = get_client()
     col = f"docs_{lang}"
     ensure_collection(client, col)
     data_dir = pathlib.Path(f"data/{lang}")
-    files = sorted(data_dir.glob("*.md"))
+    files = collect_lang_files(lang)
     if not files:
-        print(f"no files in {data_dir}")
+        print(f"no files for lang={lang} (dirs: {LANG_DIRS[lang]})")
         return
+    n_files = len(files)
     points = []
     for f in files:
-        text = f.read_text(encoding="utf-8")
+        text = read_doc_text(f)
+        if not text.strip():
+            continue
         for c in chunk(text, size=600, overlap=100):
             vec = embed([c])[0]
             pid = str(uuid.UUID(hex=hashlib.md5(c.encode()).hexdigest()))
@@ -48,7 +111,7 @@ def ingest_lang(lang: str):
                 )
             )
     client.upsert(collection_name=col, points=points)
-    print(f"{col}: upserted {len(points)} points from {len(files)} files")
+    print(f"{col}: upserted {len(points)} points from {n_files} files")
 
 
 if __name__ == "__main__":

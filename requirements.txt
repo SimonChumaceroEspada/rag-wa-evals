@@ -7,3 +7,5 @@ pytest
 ragas
 datasets
 langdetect
+pypdf
+pdfplumber

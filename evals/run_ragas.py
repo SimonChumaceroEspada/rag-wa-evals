@@ -13,7 +13,10 @@ import datetime
 import json
 import pathlib
 import re
+import sys
 import unicodedata
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
 QA = pathlib.Path("evals/qa_es.jsonl")
 OUT = pathlib.Path("evals/baseline.json")
@@ -52,10 +55,13 @@ def live_ask(client, q: str) -> dict | None:
 
 
 def offline_ask(q: str) -> dict:
+    from src.ingest import collect_lang_files, read_doc_text
+
     docs = []
-    for f in sorted(pathlib.Path("data/es").glob("*.md")):
-        t = f.read_text(encoding="utf-8")
-        docs.append({"text": t, "source": f.name})
+    for f in collect_lang_files("es"):
+        t = read_doc_text(f)
+        if t.strip():
+            docs.append({"text": t, "source": f.name})
     qt = tokens(q)
     ranked = sorted(
         docs, key=lambda d: len(qt & tokens(d["text"])), reverse=True

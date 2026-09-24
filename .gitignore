@@ -4,3 +4,8 @@ __pycache__/
 .env
 .qdrant/
 evals/baseline.json
+# Corpus Acme original (PDFs binarios, ~432K): descargar según README, no commitear.
+data/acme/
+# PDFs Acme traducidos al ES (generados, pesados): no commitear (ver .hermes/specs/).
+data/acme-es/
+data/acme-es/

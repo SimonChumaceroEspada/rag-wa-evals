@@ -20,9 +20,31 @@ GET /ask?q=...&lang=es --> embed(q) --> top-5 cosine --> prompt [1][2] --> {answ
 
 - `src/chunk.py` — deterministic word splitter with overlap (no idea gets cut in half).
 - `src/embed.py` — OpenAI `text-embedding-3-small` when `OPENAI_API_KEY` is set, deterministic dummy vectors offline.
-- `src/ingest.py` — idempotent upserts (`id = hash(text)`): re-running never duplicates.
+- `src/ingest.py` — idempotent upserts (`id = hash(text)`): re-running never duplicates. Reads `.md` + `.pdf` (`pypdf`, `pdfplumber` fallback); `--lang es` ingests `data/es` + `data/acme-es` (26 translated PDFs, twins of the EN ones).
 - `api/main.py` — retrieval (top-5) + LLM answer with `[1][2]` citations; extractive fallback without a key.
-- `evals/` — 30 ES Q&A (`qa_es.jsonl`) + scorer (`run_ragas.py`). Golden rule: **no prompt/model change without re-running evals.**
+- `evals/` — 30 ES Q&A (`qa_es.jsonl`, sobre el subset Acme traducido) + scorer (`run_ragas.py`). Golden rule: **no prompt/model change without re-running evals.**
+
+## Corpus: AcmeTech Solutions Inc. (fictional, external)
+
+The production corpus is **AcmeTech Solutions Inc.**, a fictional company from the public dataset
+[maruf6890/acmetech-enterprise-rag-dataset](https://github.com/maruf6890/acmetech-enterprise-rag-dataset)
+(26 PDFs across 7 departments + manifest + 200-question EN test set; we reuse the manifest/test set for EN).
+
+> **Permission:** granted verbally by the author on 2026-09-24 (arranged by Simón), with attribution + link
+> (this section). Even so, the original PDFs are **NOT committed** (repo hygiene: heavy binaries):
+> `data/acme/` is in `.gitignore`.
+
+```bash
+# Download the corpus (not committed — ~432K):
+git clone --depth 1 https://github.com/maruf6890/acmetech-enterprise-rag-dataset.git /tmp/acme-src
+mkdir -p data/acme && cp -r /tmp/acme-src/AcmeTech/* data/acme/
+python -m src.ingest --lang en   # 26 PDFs -> docs_en
+python -m src.ingest --lang es   # 26 translated PDFs (twins of the EN ones) -> docs_es
+```
+
+- EN full: `data/acme/` (26 original PDFs, read directly by ingest).
+- ES full (translated by hand from EN, figures preserved, same layout): `data/acme-es/`
+  — 26 PDFs mirroring the EN set, generated from `data/es-acme/` sources.
 
 ## API
 

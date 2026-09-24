@@ -1,30 +1,30 @@
-{"q": "¿Qué combina un sistema RAG?", "expected": "recuperación y generación", "source": "rag-intro.md"}
-{"q": "¿Qué se recupera primero en un RAG?", "expected": "chunks más parecidos", "source": "rag-intro.md"}
-{"q": "¿Cómo responde el LLM en un RAG?", "expected": "citando esas fuentes", "source": "rag-intro.md"}
-{"q": "¿Qué es un sistema RAG bilingüe?", "expected": "recuperación y generación", "source": "rag-intro.md"}
-{"q": "¿Para qué sirven los chunks en RAG?", "expected": "parecidos a la pregunta", "source": "rag-intro.md"}
-{"q": "¿Qué hace el LLM con las fuentes?", "expected": "responde citando", "source": "rag-intro.md"}
-{"q": "Explica el flujo de un RAG", "expected": "recuperan los chunks", "source": "rag-intro.md"}
-{"q": "¿Qué significa RAG?", "expected": "recuperación", "source": "rag-intro.md"}
-{"q": "¿De dónde saca la respuesta el sistema RAG?", "expected": "fuentes", "source": "rag-intro.md"}
-{"q": "¿Qué se compara con la pregunta?", "expected": "chunks", "source": "rag-intro.md"}
-{"q": "¿Qué son los gatos?", "expected": "curiosos y dormilones", "source": "gatos.md"}
-{"q": "¿Cómo son los gatos?", "expected": "curiosos", "source": "gatos.md"}
-{"q": "¿Qué evita el overlap en chunking?", "expected": "cortar frases", "source": "gatos.md"}
-{"q": "¿Sobre qué no hay que cortar frases?", "expected": "gatos", "source": "gatos.md"}
-{"q": "Si pregunto por gatos, ¿qué debe pasar?", "expected": "recuperar este párrafo", "source": "gatos.md"}
-{"q": "¿Qué animal es dormilón?", "expected": "gatos", "source": "gatos.md"}
-{"q": "¿Qué animal es curioso?", "expected": "gatos", "source": "gatos.md"}
-{"q": "¿Qué técnica evita cortar frases a la mitad?", "expected": "overlap", "source": "gatos.md"}
-{"q": "¿Dónde se habla de gatos curiosos?", "expected": "dormilones", "source": "gatos.md"}
-{"q": "Describe a los gatos del corpus", "expected": "curiosos y dormilones", "source": "gatos.md"}
-{"q": "¿Qué combina la recuperación con la generación?", "expected": "RAG", "source": "rag-intro.md"}
-{"q": "¿Quién cita las fuentes al responder?", "expected": "LLM", "source": "rag-intro.md"}
-{"q": "¿Qué son los chunks más parecidos?", "expected": "pregunta", "source": "rag-intro.md"}
-{"q": "¿En qué idioma está el doc de RAG?", "expected": "recuperación", "source": "rag-intro.md"}
-{"q": "¿El RAG genera o solo recupera?", "expected": "generación", "source": "rag-intro.md"}
-{"q": "¿Los gatos duermen mucho?", "expected": "dormilones", "source": "gatos.md"}
-{"q": "¿El overlap para qué sirve?", "expected": "evita cortar", "source": "gatos.md"}
-{"q": "¿Qué párrafo habla de frases sobre gatos?", "expected": "mitad", "source": "gatos.md"}
-{"q": "¿Qué debe recuperar el sistema si preguntas por gatos?", "expected": "párrafo", "source": "gatos.md"}
-{"q": "Resume el doc de gatos", "expected": "curiosos", "source": "gatos.md"}
+{"q": "¿Qué uptime mensual garantiza AcmeTech a clientes Enterprise?", "expected": "99.9% de uptime mensual", "source": "SLA.pdf"}
+{"q": "¿Qué uptime garantiza AcmeTech al nivel Growth?", "expected": "99.5%", "source": "SLA.pdf"}
+{"q": "¿El nivel Starter tiene garantía formal de uptime?", "expected": "no incluye garantía formal de uptime", "source": "SLA.pdf"}
+{"q": "¿En cuánto debe responder Soporte un ticket P1 de un cliente Enterprise?", "expected": "P1: 1 hora", "source": "SLA.pdf"}
+{"q": "¿Cuál es el tiempo de respuesta P2 para Enterprise?", "expected": "P2: 4 horas", "source": "SLA.pdf"}
+{"q": "Un cliente Growth con un P1, ¿en cuánto recibe respuesta?", "expected": "P1: 4 horas", "source": "SLA.pdf"}
+{"q": "¿Qué objetivo de resolución tiene AcmeTech para el 90% de los P1 Enterprise?", "expected": "dentro de 4 horas", "source": "SLA.pdf"}
+{"q": "¿De cuánto son los créditos de servicio para Enterprise si falla el uptime?", "expected": "de 5% a 30%", "source": "SLA.pdf"}
+{"q": "¿En qué plazo debe solicitarse un crédito de servicio?", "expected": "dentro de 30 días", "source": "SLA.pdf"}
+{"q": "¿Qué significa P1 (Urgente) en la clasificación de tickets?", "expected": "caída de la plataforma o imposibilidad total de usar la funcionalidad central", "source": "Support_SOP.pdf"}
+{"q": "¿Qué es un ticket P2 (Alta)?", "expected": "funcionalidad principal rota sin solución alternativa", "source": "Support_SOP.pdf"}
+{"q": "¿Qué canales reciben tickets de clientes?", "expected": "chat en la aplicación, correo electrónico (support@acmetech.com) y el canal dedicado de Slack", "source": "Support_SOP.pdf"}
+{"q": "¿Cada cuánto debe actualizarse al cliente un ticket P1 o P2 abierto?", "expected": "al menos una vez cada 24 horas", "source": "Support_SOP.pdf"}
+{"q": "¿Cuánto dura la certificación de un agente nuevo de soporte?", "expected": "3 semanas", "source": "Support_SOP.pdf"}
+{"q": "¿Qué nota mínima exige la certificación de agentes?", "expected": "85% o más", "source": "Support_SOP.pdf"}
+{"q": "¿Qué porcentaje de tickets revisa el líder de QA cada mes?", "expected": "5%", "source": "Support_SOP.pdf"}
+{"q": "¿Cuál es la meta de CSAT global de AcmeTech?", "expected": "90% o más", "source": "Support_SOP.pdf"}
+{"q": "¿En qué plazo actualiza Gestión del Conocimiento un artículo reportado?", "expected": "dentro de 5 días hábiles", "source": "Support_SOP.pdf"}
+{"q": "¿Qué marco usan los agentes para calmar clientes frustrados?", "expected": "«Reconocer, Disculparse, Actuar»", "source": "Support_SOP.pdf"}
+{"q": "¿Qué hace el Nivel 1 (Tier 1) en el modelo de escalamiento?", "expected": "atiende resolución general de problemas y preguntas de cuentas", "source": "Escalation_Guide.pdf"}
+{"q": "¿Cuándo se escala un P1 a Nivel 2?", "expected": "tras 2 horas", "source": "Escalation_Guide.pdf"}
+{"q": "¿Cuándo se escala un P2 a Nivel 2?", "expected": "8 horas", "source": "Escalation_Guide.pdf"}
+{"q": "¿Qué pasa con un ticket con sospecha de pérdida de datos?", "expected": "debe escalarse a Nivel 3 y al equipo de Seguridad de inmediato", "source": "Escalation_Guide.pdf"}
+{"q": "¿Qué debe incluir todo resumen de entrega de un escalamiento?", "expected": "descripción del problema, pasos de reproducción, impacto al cliente e intentos previos de resolución", "source": "Escalation_Guide.pdf"}
+{"q": "¿Cuántos días de PTO al año acumulan los tiempo completo?", "expected": "22 días de PTO al año", "source": "Leave_Policy.pdf"}
+{"q": "¿Cuántos días de PTO pueden trasladarse al año siguiente?", "expected": "5 días", "source": "Leave_Policy.pdf"}
+{"q": "¿Cuántos días pagos por enfermedad hay al año?", "expected": "10 días pagos por enfermedad", "source": "Leave_Policy.pdf"}
+{"q": "¿Cuántos días de duelo corresponden por un familiar directo?", "expected": "hasta 10 días pagos por duelo", "source": "Leave_Policy.pdf"}
+{"q": "¿Tras cuántos años se accede al sabático y de cuánto es?", "expected": "5 años de antigüedad continua", "source": "Leave_Policy.pdf"}
+{"q": "¿En cuántos días hábiles debe aprobar el manager una solicitud en Workday?", "expected": "dentro de 2 días hábiles", "source": "Leave_Policy.pdf"}
