@@ -129,13 +129,21 @@ def judge_faithfulness(q: str, ctx: str, answer: str) -> dict:
                 continue
         return None
 
-    raw = call(msgs)
-    v = parse(raw)
-    if v is None:  # reintento: regañar y pedir solo JSON
-        raw = call(msgs + [{"role": "user", "content": "That was not ONLY JSON. Reply NOW with only the JSON object."}])
-        v = parse(raw)
+    raw = None
+    v = None
+    for attempt in range(3):
+        try:
+            raw = call(msgs if attempt == 0 else msgs + [{"role": "user", "content": "That was not ONLY JSON. Reply NOW with only the JSON object."}])
+            v = parse(raw)
+            if v is not None:
+                break
+        except Exception as e:
+            print(f"juez intento {attempt + 1} falló ({e.__class__.__name__}), reintento")
+            import time as _t
+
+            _t.sleep(10)
     if v is None:
-        return {"verdict": {"faithfulness": None, "reason": "juez no devolvió JSON"}, "raw": raw[:200]}
+        return {"verdict": {"faithfulness": None, "reason": "juez no disponible"}, "raw": (raw or "")[:200]}
     # verificación código: la cita debe existir literal en el contexto (mata veredictos cantados)
     q2 = norm(str(v.get("quote", "")))
     if not q2 or q2 not in norm(ctx):
@@ -202,7 +210,15 @@ def main():
         f_sum += f
         c_sum += c
         if args.judge:
-            j = judge_faithfulness(row["q"], ctx, res["answer"])
+            jcache_p = pathlib.Path(".hermes/cache_judge.json")
+            jcache = json.loads(jcache_p.read_text(encoding="utf-8")) if jcache_p.exists() else {}
+            if row["q"] in jcache:
+                j = {"verdict": jcache[row["q"]]}
+            else:
+                j = judge_faithfulness(row["q"], ctx, res["answer"])
+                jcache[row["q"]] = j["verdict"]
+                jcache_p.write_text(json.dumps(jcache), encoding="utf-8")
+                time.sleep(args.pace)
             v = j["verdict"].get("faithfulness")
             if isinstance(v, int):
                 j_sum += v
@@ -211,7 +227,6 @@ def main():
             print(f"A: {res['answer'][:200]}".encode("ascii", "replace").decode())
             hj = f"heuristico: faithfulness={f} | JUEZ: {j['verdict']}"
             print(hj.encode("ascii", "replace").decode())
-            time.sleep(args.pace)
     n = len(rows)
     out = {
         "faithfulness": round(f_sum / n, 3) if n else 0.0,
