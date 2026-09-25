@@ -25,6 +25,7 @@ OUT = pathlib.Path("evals/baseline.json")
 def norm(s: str) -> str:
     s = unicodedata.normalize("NFD", s.lower())
     s = "".join(c for c in s if unicodedata.category(c) != "Mn")
+    s = re.sub(r"(?<=\d)[.,](?=\d)", "", s)  # 99.9% == 99,9% (bilingüe)
     return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", s)).strip()
 
 
@@ -78,9 +79,85 @@ def offline_ask(q: str) -> dict:
     }
 
 
+def judge_faithfulness(q: str, ctx: str, answer: str) -> dict:
+    """Juez LLM (NIM): ¿cada afirmación de `answer` sale de `ctx`? Solo JSON."""
+    import os
+
+    from dotenv import load_dotenv
+
+    load_dotenv()
+    from openai import OpenAI
+
+    client = OpenAI(
+        base_url="https://integrate.api.nvidia.com/v1",
+        api_key=os.getenv("NVIDIA_API_KEY"),
+        timeout=120,
+    )
+    prompt = (
+        "Grade faithfulness of ANSWER against CONTEXT for QUESTION.\n"
+        'Reply with ONLY one JSON object like {"faithfulness": 1, "quote": "...", "reason": "..."}.\n'
+        "faithfulness=1 ONLY if every factual claim in ANSWER is supported by CONTEXT, else 0.\n"
+        "quote MUST be an exact span copied from CONTEXT that proves your verdict "
+        "(for 1: span supporting the answer; for 0: the span it contradicts). "
+        "If no such span exists, faithfulness=0.\n"
+        'Example: {"faithfulness": 1, "quote": "99.9% de uptime mensual", "reason": "La cifra aparece literal en el contexto."}\n'
+        "Copy the quote character-for-character from CONTEXT, never invent it, never write ....\n"
+        f"QUESTION: {q}\nCONTEXT:\n{ctx[:3000]}\nANSWER:\n{answer}"
+    )
+    msgs = [
+        {"role": "system", "content": "You are a strict evaluator. You output ONLY one JSON object, never explanations, never thinking."},
+        {"role": "user", "content": prompt},
+    ]
+    def call(messages):
+        resp = client.chat.completions.create(
+            model=os.getenv("NIM_JUDGE_MODEL", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+            messages=messages,
+            max_tokens=600,
+        )
+        return resp.choices[0].message.content
+
+    def parse(raw):
+        import re as _re
+
+        found = _re.findall(r"\{.*?\}", raw, _re.DOTALL)
+        for cand in reversed(found):
+            try:
+                v = json.loads(cand)
+                if isinstance(v.get("faithfulness"), int):
+                    return v
+            except Exception:
+                continue
+        return None
+
+    raw = call(msgs)
+    v = parse(raw)
+    if v is None:  # reintento: regañar y pedir solo JSON
+        raw = call(msgs + [{"role": "user", "content": "That was not ONLY JSON. Reply NOW with only the JSON object."}])
+        v = parse(raw)
+    if v is None:
+        return {"verdict": {"faithfulness": None, "reason": "juez no devolvió JSON"}, "raw": raw[:200]}
+    # verificación código: la cita debe existir literal en el contexto (mata veredictos cantados)
+    q2 = norm(str(v.get("quote", "")))
+    if not q2 or q2 not in norm(ctx):
+        return {"verdict": {"faithfulness": 0, "reason": "cita del juez no verificada en contexto", "quote": v.get("quote", "")}, "raw": raw[:200]}
+    return {"verdict": v, "raw": raw[:200]}
+
+
 def main():
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--judge", action="store_true", help="califica con juez LLM")
+    ap.add_argument("--n", type=int, default=0, help="solo primeras N (0=todas)")
+    ap.add_argument("--offline", action="store_true", help="fuerza fallback sin Qdrant")
+    ap.add_argument("--out", default="", help="archivo salida (default: baseline.json)")
+    ap.add_argument("--cache", default=".hermes/cache_ask.json", help="caché respuestas")
+    ap.add_argument("--pace", type=float, default=6.0, help="pausa entre llamadas juez")
+    args = ap.parse_args()
     rows = [json.loads(l) for l in QA.read_text(encoding="utf-8").splitlines() if l.strip()]
-    live = qdrant_up()
+    if args.n:
+        rows = rows[: args.n]
+    live = qdrant_up() and not args.offline
     client = None
     if live:
         from fastapi.testclient import TestClient
@@ -89,11 +166,20 @@ def main():
 
         client = TestClient(app)
     else:
-        print("Qdrant caído (¿Docker apagado?), modo heuristic-offline para las 30")
+        print("modo heuristic-offline para las 30" + (" (--offline)" if args.offline else " (¿Docker apagado?)"))
     live_ok = 0
     f_sum = c_sum = 0.0
+    j_sum = j_n = 0
+    cache_p = pathlib.Path(args.cache)
+    cache = json.loads(cache_p.read_text(encoding="utf-8")) if cache_p.exists() else {}
+    import time
+
     for row in rows:
-        res = live_ask(client, row["q"]) if live else None
+        res = None
+        if live and row["q"] in cache:
+            res = {"answer": cache[row["q"]]["answer"], "sources": cache[row["q"]]["sources"]}
+        else:
+            res = live_ask(client, row["q"]) if live else None
         method_live = res is not None
         live_ok += method_live
         if res is None:
@@ -103,6 +189,9 @@ def main():
             ctx = "\n".join(
                 f"[{i + 1}] {s['text']}" for i, s in enumerate(res["sources"])
             )
+            if live and row["q"] not in cache:
+                cache[row["q"]] = {"answer": res["answer"], "sources": res["sources"]}
+                cache_p.write_text(json.dumps(cache), encoding="utf-8")
         hay = norm(res["answer"] + " " + ctx)
         f = 1.0 if norm(row["expected"]) in hay else 0.0
         c = 0.0
@@ -112,6 +201,17 @@ def main():
                 break
         f_sum += f
         c_sum += c
+        if args.judge:
+            j = judge_faithfulness(row["q"], ctx, res["answer"])
+            v = j["verdict"].get("faithfulness")
+            if isinstance(v, int):
+                j_sum += v
+                j_n += 1
+            print(f"\nQ: {row['q']}".encode("ascii", "replace").decode())
+            print(f"A: {res['answer'][:200]}".encode("ascii", "replace").decode())
+            hj = f"heuristico: faithfulness={f} | JUEZ: {j['verdict']}"
+            print(hj.encode("ascii", "replace").decode())
+            time.sleep(args.pace)
     n = len(rows)
     out = {
         "faithfulness": round(f_sum / n, 3) if n else 0.0,
@@ -121,7 +221,12 @@ def main():
         "live_answers": live_ok,
         "date": datetime.date.today().isoformat(),
     }
-    OUT.write_text(json.dumps(out, indent=2), encoding="utf-8")
+    if args.judge and j_n:
+        out["judge_faithfulness"] = round(j_sum / j_n, 3)
+        out["judge_n"] = j_n
+        out["method"] += "+judge"
+    dest = pathlib.Path(args.out) if args.out else OUT
+    dest.write_text(json.dumps(out, indent=2), encoding="utf-8")
     print(json.dumps(out, indent=2))
 
 
