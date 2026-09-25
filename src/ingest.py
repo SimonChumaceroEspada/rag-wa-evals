@@ -9,7 +9,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, PointStruct, VectorParams
 
 from src.chunk import chunk
-from src.embed import DIM, embed
+from src.embed import embed, embed_dim, provider
 
 
 def get_client() -> QdrantClient:
@@ -23,11 +23,18 @@ def get_client() -> QdrantClient:
 
 
 def ensure_collection(client: QdrantClient, name: str):
-    if not client.collection_exists(name):
-        client.create_collection(
-            collection_name=name,
-            vectors_config=VectorParams(size=DIM, distance=Distance.COSINE),
-        )
+    dim = embed_dim()
+    if client.collection_exists(name):
+        cur = client.get_collection(name).config.params.vectors.size
+        if cur != dim:
+            print(f"{name}: dim {cur} -> {dim} (cambio de proveedor), recreo colección")
+            client.delete_collection(name)
+        else:
+            return
+    client.create_collection(
+        collection_name=name,
+        vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
+    )
 
 
 def read_pdf_text(path: pathlib.Path) -> str:
@@ -97,21 +104,26 @@ def ingest_lang(lang: str):
         print(f"no files for lang={lang} (dirs: {LANG_DIRS[lang]})")
         return
     n_files = len(files)
-    points = []
+    items = []  # (pid, text, source)
     for f in files:
         text = read_doc_text(f)
         if not text.strip():
             continue
         for c in chunk(text, size=600, overlap=100):
-            vec = embed([c])[0]
             pid = str(uuid.UUID(hex=hashlib.md5(c.encode()).hexdigest()))
-            points.append(
-                PointStruct(
-                    id=pid, vector=vec, payload={"text": c, "source": f.name}
-                )
-            )
-    client.upsert(collection_name=col, points=points)
-    print(f"{col}: upserted {len(points)} points from {n_files} files")
+            items.append((pid, c, f.name))
+    print(f"{col}: {len(items)} chunks de {n_files} files (provider={provider()})")
+    for i in range(0, len(items), 32):  # batching: 1 request por lote
+        batch = items[i : i + 32]
+        vecs = embed([c for _, c, _ in batch])
+        client.upsert(
+            collection_name=col,
+            points=[
+                PointStruct(id=pid, vector=v, payload={"text": c, "source": s})
+                for (pid, c, s), v in zip(batch, vecs)
+            ],
+        )
+    print(f"{col}: upserted {len(items)} points")
 
 
 if __name__ == "__main__":

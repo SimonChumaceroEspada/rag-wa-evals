@@ -2,10 +2,29 @@ import hashlib
 import os
 import random
 
-DIM = 1536
+OPENAI_DIM = 1536
+# nvidia/nemotron-3-embed-1b (verificado servible 2026-09-25).
+NIM_EMBED_MODEL = os.getenv("NIM_EMBED_MODEL", "nvidia/nemotron-3-embed-1b")
+NIM_DIM = 2048
+DUMMY_DIM = 1536
+NIM_URL = "https://integrate.api.nvidia.com/v1"
 
 
-def _dummy_vector(text: str, dim: int = DIM) -> list[float]:
+def provider() -> str:
+    """openai (key) > nim (key) > dummy (offline). Evaluado tarde (post-dotenv)."""
+    ok = os.getenv("OPENAI_API_KEY", "")
+    if ok and not ok.startswith("sk-change"):
+        return "openai"
+    if os.getenv("NVIDIA_API_KEY", ""):
+        return "nim"
+    return "dummy"
+
+
+def embed_dim() -> int:
+    return {"openai": OPENAI_DIM, "nim": NIM_DIM, "dummy": DUMMY_DIM}[provider()]
+
+
+def _dummy_vector(text: str, dim: int = DUMMY_DIM) -> list[float]:
     """Deterministic dummy embedding (no API key needed)."""
     seed = int(hashlib.md5(text.encode()).hexdigest(), 16) % (2**32)
     rnd = random.Random(seed)
@@ -13,13 +32,19 @@ def _dummy_vector(text: str, dim: int = DIM) -> list[float]:
 
 
 def embed(texts: list[str]) -> list[list[float]]:
-    """Embed texts with OpenAI if key exists, else dummy vectors."""
-    key = os.getenv("OPENAI_API_KEY", "")
-    if key and not key.startswith("sk-change"):
+    """Embed texts. Acepta lista (batching: 1 request por lote, no por chunk)."""
+    p = provider()
+    if p == "openai":
         from openai import OpenAI
 
-        client = OpenAI()
+        client = OpenAI(timeout=120)
         model = os.getenv("EMBED_MODEL", "text-embedding-3-small")
         resp = client.embeddings.create(input=texts, model=model)
+        return [d.embedding for d in resp.data]
+    if p == "nim":
+        from openai import OpenAI
+
+        client = OpenAI(base_url=NIM_URL, api_key=os.getenv("NVIDIA_API_KEY"), timeout=120)
+        resp = client.embeddings.create(input=texts, model=NIM_EMBED_MODEL)
         return [d.embedding for d in resp.data]
     return [_dummy_vector(t) for t in texts]

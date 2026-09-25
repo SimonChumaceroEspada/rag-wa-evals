@@ -11,6 +11,34 @@ app = FastAPI(title="rag-wa-evals")
 
 
 def llm_answer(q: str, lang: str, context: str) -> str:
+    nv = os.getenv("NVIDIA_API_KEY", "")
+    if nv:
+        try:
+            from openai import OpenAI
+
+            client = OpenAI(
+                base_url="https://integrate.api.nvidia.com/v1",
+                api_key=nv,
+                timeout=120,
+            )
+            model = os.getenv("NIM_CHAT_MODEL", "nvidia/nemotron-3.5-lightning-30b-a3b")
+            sys = (
+                f"Answer in {'Spanish' if lang == 'es' else 'English'}. "
+                "Cite sources with [1][2]. Use only the context. "
+                "Reply DIRECTLY with the final answer and its citations; "
+                "do not show your reasoning process."
+            )
+            resp = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": sys},
+                    {"role": "user", "content": f"Q: {q}\nContext:\n{context}"},
+                ],
+                max_tokens=1500,
+            )
+            return resp.choices[0].message.content
+        except Exception as e:
+            print(f"NIM falló ({e.__class__.__name__}), pruebo siguiente")
     key = os.getenv("OPENAI_API_KEY", "")
     if key and not key.startswith("sk-change"):
         try:
