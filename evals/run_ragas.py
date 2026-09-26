@@ -79,8 +79,10 @@ def offline_ask(q: str) -> dict:
     }
 
 
-def judge_faithfulness(q: str, ctx: str, answer: str) -> dict:
-    """Juez LLM (NIM): ¿cada afirmación de `answer` sale de `ctx`? Solo JSON."""
+def judge_faithfulness(q: str, ctx: str, answer: str, base_url: str = "", api_key: str = "", model: str = "") -> dict:
+    """Juez LLM: ¿cada afirmación de `answer` sale de `ctx`? Solo JSON.
+    Defaults: NIM direct (NIM_CHAT_MODEL). Pasar base_url/api_key/model para router/otros.
+    """
     import os
 
     from dotenv import load_dotenv
@@ -88,11 +90,15 @@ def judge_faithfulness(q: str, ctx: str, answer: str) -> dict:
     load_dotenv()
     from openai import OpenAI
 
-    client = OpenAI(
-        base_url="https://integrate.api.nvidia.com/v1",
-        api_key=os.getenv("NVIDIA_API_KEY"),
-        timeout=120,
-    )
+    # Default: juez por el router (gpt-oss-20b, disciplinado y rápido).
+    # Fallback: NIM directo. Override explícito vía params.
+    if not base_url:
+        base_url = os.getenv("FREELLMAPI_BASE_URL", "") or "https://integrate.api.nvidia.com/v1"
+    if not api_key:
+        api_key = os.getenv("FREELLMAPI_API_KEY", "") or os.getenv("NVIDIA_API_KEY")
+    if not model:
+        model = "gpt-oss-20b" if "3001" in base_url else os.getenv("NIM_JUDGE_MODEL", "nvidia/nemotron-3.5-lightning-30b-a3b")
+    client = OpenAI(base_url=base_url, api_key=api_key, timeout=120)
     prompt = (
         "Grade faithfulness of ANSWER against CONTEXT for QUESTION.\n"
         'Reply with ONLY one JSON object like {"faithfulness": 1, "quote": "...", "reason": "..."}.\n'
@@ -110,7 +116,7 @@ def judge_faithfulness(q: str, ctx: str, answer: str) -> dict:
     ]
     def call(messages):
         resp = client.chat.completions.create(
-            model=os.getenv("NIM_JUDGE_MODEL", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+            model=model,
             messages=messages,
             max_tokens=600,
         )
