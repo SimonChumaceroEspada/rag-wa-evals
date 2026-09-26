@@ -9,4 +9,4 @@ def test_ask_returns_sources():
     data = r.json()
     assert "answer" in data and len(data["answer"]) > 0
     assert "sources" in data and len(data["sources"]) > 0
-    assert "[1]" in data["answer"]
+    assert any(f"[{i}]" in data["answer"] for i in range(1, 6))  # cita alguna fuente

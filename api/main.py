@@ -75,14 +75,20 @@ def ask(q: str, lang: str = "es"):
     col = f"docs_{lang}"
     client = get_client()
     qvec = embed([q])[0]
-    hits = client.query_points(collection_name=col, query=qvec, limit=5).points
-    sources = [
-        {
-            "text": h.payload.get("text", ""),
-            "source": h.payload.get("source", ""),
-            "score": h.score,
-        }
-        for h in hits
-    ]
+    try:
+        from src.hybrid import hybrid_search
+
+        sources = hybrid_search(client, lang, qvec, q)
+    except Exception as e:
+        print(f"hybrid falló ({e.__class__.__name__}), fallback denso")
+        hits = client.query_points(collection_name=col, query=qvec, limit=5).points
+        sources = [
+            {
+                "text": h.payload.get("text", ""),
+                "source": h.payload.get("source", ""),
+                "score": h.score,
+            }
+            for h in hits
+        ]
     context = "\n".join(f"[{i + 1}] {s['text']}" for i, s in enumerate(sources))
     return {"answer": llm_answer(q, lang, context), "sources": sources, "lang": lang}

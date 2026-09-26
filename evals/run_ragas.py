@@ -167,6 +167,7 @@ def main():
     ap.add_argument("--out", default="", help="archivo salida (default: baseline.json)")
     ap.add_argument("--cache", default=".hermes/cache_ask.json", help="caché respuestas")
     ap.add_argument("--pace", type=float, default=6.0, help="pausa entre llamadas juez")
+    ap.add_argument("--fresh", action="store_true", help="ignora caché (re-mide todo)")
     args = ap.parse_args()
     rows = [json.loads(l) for l in QA.read_text(encoding="utf-8").splitlines() if l.strip()]
     if args.n:
@@ -190,7 +191,7 @@ def main():
 
     for row in rows:
         res = None
-        if live and row["q"] in cache:
+        if live and row["q"] in cache and not args.fresh:
             res = {"answer": cache[row["q"]]["answer"], "sources": cache[row["q"]]["sources"]}
         else:
             res = live_ask(client, row["q"]) if live else None
