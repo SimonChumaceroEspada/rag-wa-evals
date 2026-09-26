@@ -1,0 +1,8 @@
+{
+  "faithfulness": 0.9,
+  "context_precision": 0.4,
+  "n": 30,
+  "method": "live",
+  "live_answers": 30,
+  "date": "2026-09-26"
+}
