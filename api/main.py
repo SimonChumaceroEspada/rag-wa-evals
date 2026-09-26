@@ -77,8 +77,10 @@ def ask(q: str, lang: str = "es"):
     qvec = embed([q])[0]
     try:
         from src.hybrid import hybrid_search
+        from src.rerank import rerank
 
-        sources = hybrid_search(client, lang, qvec, q)
+        cands = hybrid_search(client, lang, qvec, q, k_dense=10, k_bm25=10, k_final=20)
+        sources = rerank(q, cands, top_n=5)
     except Exception as e:
         print(f"hybrid falló ({e.__class__.__name__}), fallback denso")
         hits = client.query_points(collection_name=col, query=qvec, limit=5).points
