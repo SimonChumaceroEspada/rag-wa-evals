@@ -33,7 +33,10 @@ def llm_score_fn(q: str, docs: list[dict]) -> list[float]:
     def ask(extra=""):
         r = client.chat.completions.create(
             model=os.getenv("RERANK_MODEL", "gpt-oss-20b"),
-            messages=[{"role": "user", "content": prompt + extra}],
+            messages=[
+                {"role": "system", "content": "You output ONLY a JSON list of numbers, never explanations, never thinking."},
+                {"role": "user", "content": prompt + extra},
+            ],
             max_tokens=300,
         )
         return r.choices[0].message.content or ""

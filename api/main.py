@@ -10,35 +10,50 @@ load_dotenv()
 app = FastAPI(title="rag-wa-evals")
 
 
-def llm_answer(q: str, lang: str, context: str) -> str:
-    nv = os.getenv("NVIDIA_API_KEY", "")
-    if nv:
-        try:
-            from openai import OpenAI
+def _chat(system: str, user: str, base_url: str, api_key: str, model: str, tokens: int) -> str:
+    from openai import OpenAI
 
-            client = OpenAI(
-                base_url="https://integrate.api.nvidia.com/v1",
-                api_key=nv,
-                timeout=120,
-            )
-            model = os.getenv("NIM_CHAT_MODEL", "nvidia/nemotron-3.5-lightning-30b-a3b")
-            sys = (
-                f"Answer in {'Spanish' if lang == 'es' else 'English'}. "
-                "Cite sources with [1][2]. Use only the context. "
-                "Reply DIRECTLY with the final answer and its citations; "
-                "do not show your reasoning process."
-            )
-            resp = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": sys},
-                    {"role": "user", "content": f"Q: {q}\nContext:\n{context}"},
-                ],
-                max_tokens=1500,
-            )
-            return resp.choices[0].message.content
-        except Exception as e:
-            print(f"NIM falló ({e.__class__.__name__}), pruebo siguiente")
+    client = OpenAI(base_url=base_url, api_key=api_key, timeout=120)
+    resp = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+        max_tokens=tokens,
+    )
+    return resp.choices[0].message.content
+
+
+def llm_answer(q: str, lang: str, context: str) -> str:
+    sys = (
+        f"Answer in {'Spanish' if lang == 'es' else 'English'}. "
+        "Cite sources with [1][2]. Use only the context. "
+        "Reply DIRECTLY with the final answer and its citations; "
+        "do not show your reasoning process."
+    )
+    user = f"Q: {q}\nContext:\n{context}"
+    nv = os.getenv("NVIDIA_API_KEY", "")
+    rk = os.getenv("FREELLMAPI_API_KEY", "")
+    if nv or rk:
+        from src.fallback import call_with_fallback
+
+        def primary():
+            if not nv:
+                raise RuntimeError("sin NVIDIA_API_KEY")
+            return _chat(sys, user, "https://integrate.api.nvidia.com/v1", nv,
+                         os.getenv("NIM_CHAT_MODEL", "nvidia/nemotron-3.5-lightning-30b-a3b"), 1500)
+
+        def fallback():
+            if not rk:
+                raise RuntimeError("sin FREELLMAPI_API_KEY")
+            return _chat(sys, user,
+                         os.getenv("FREELLMAPI_BASE_URL", "http://localhost:3001/v1"), rk,
+                         os.getenv("FALLBACK_CHAT_MODEL", "gpt-oss-20b"), 1500)
+
+        ans, who = call_with_fallback(primary, fallback, label="ask")
+        print(f"ask servido por: {who}")
+        return ans
     key = os.getenv("OPENAI_API_KEY", "")
     if key and not key.startswith("sk-change"):
         try:
