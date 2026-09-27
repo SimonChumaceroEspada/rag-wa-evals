@@ -6,7 +6,10 @@
 <title>rag-wa-evals — demo RAG bilingüe</title>
 <style>
 body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
-#ans { white-space: pre-wrap; border: 1px solid #ccc; padding: 1rem; min-height: 4rem; }
+#ans { border: 1px solid #ccc; padding: 1rem; min-height: 4rem; line-height: 1.5; }
+#ans ul, #ans ol { margin: .4rem 0; padding-left: 1.4rem; }
+.src { font-size: .85rem; color: #222; border: 1px solid #ddd; border-radius: 8px; padding: .5rem .7rem; margin: .4rem 0; background: #fafafa; }
+.src b { color: #000; }
 .src { font-size: .85rem; color: #444; border-top: 1px dashed #ccc; padding: .4rem 0; }
 #spin { display: none; } #wake { display: none; color: #a60; }
 input[type=text] { width: 70%; padding: .4rem; }
@@ -23,6 +26,21 @@ input[type=text] { width: 70%; padding: .4rem; }
 <h3>Fuentes</h3><div id="srcs"></div>
 <script>
 let t;
+function md(t) {
+  t = t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  t = t.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  const lines = t.split('\n');
+  let h = '', list = null;
+  const close = () => { if (list) { h += list === 'ol' ? '</ol>' : '</ul>'; list = null; } };
+  for (const ln of lines) {
+    let m;
+    if ((m = ln.match(/^\s*\d+\.\s+(.*)/))) { if (list !== 'ol') { close(); h += '<ol>'; list = 'ol'; } h += `<li>${m[1]}</li>`; }
+    else if ((m = ln.match(/^\s*[-*]\s+(.*)/))) { if (list !== 'ul') { close(); h += '<ul>'; list = 'ul'; } h += `<li>${m[1]}</li>`; }
+    else { close(); if (ln.trim()) h += `<p>${ln}</p>`; }
+  }
+  close();
+  return h;
+}
 async function ask() {
   const q = document.getElementById('q').value, lang = document.getElementById('lang').value;
   document.getElementById('ans').textContent = ''; document.getElementById('srcs').innerHTML = '';
@@ -35,7 +53,7 @@ async function ask() {
   try {
     const r = await fetch(`/ask?q=${encodeURIComponent(q)}&lang=${lang}`, {signal: ctrl.signal});
     const d = await r.json();
-    document.getElementById('ans').textContent = d.answer || JSON.stringify(d);
+    document.getElementById('ans').innerHTML = md(d.answer || JSON.stringify(d));
     document.getElementById('srcs').innerHTML = (d.sources || []).map((s, i) =>
       `<div class="src">[${i + 1}] <b>${s.source}</b> (score ${Number(s.score).toFixed(3)})<br>${s.text.slice(0, 300)}…</div>`).join('');
   } catch (e) {
