@@ -2,6 +2,9 @@
 
 Ask your own docs in Spanish or English. One code path, `?lang=es|en`, two corpora, answers with citations.
 
+**Live demo:** `https://rag-wa-evals.onrender.com/ask?q=gatos&lang=es`
+(free tier: first request after idle takes ~1 min to wake up).
+
 ```bash
 docker compose up -d qdrant          # vector DB → http://localhost:6333/dashboard
 python -m venv .venv && .venv/Scripts/activate && pip install -r requirements.txt
