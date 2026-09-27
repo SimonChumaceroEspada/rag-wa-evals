@@ -30,14 +30,19 @@ async function ask() {
   document.getElementById('wake').style.display = 'none';
   clearTimeout(t);
   t = setTimeout(() => document.getElementById('wake').style.display = 'block', 8000);
+  const ctrl = new AbortController();
+  const kill = setTimeout(() => ctrl.abort(), 5 * 60 * 1000);
   try {
-    const r = await fetch(`/ask?q=${encodeURIComponent(q)}&lang=${lang}`);
+    const r = await fetch(`/ask?q=${encodeURIComponent(q)}&lang=${lang}`, {signal: ctrl.signal});
     const d = await r.json();
     document.getElementById('ans').textContent = d.answer || JSON.stringify(d);
     document.getElementById('srcs').innerHTML = (d.sources || []).map((s, i) =>
       `<div class="src">[${i + 1}] <b>${s.source}</b> (score ${Number(s.score).toFixed(3)})<br>${s.text.slice(0, 300)}…</div>`).join('');
-  } catch (e) { document.getElementById('ans').textContent = 'Error: ' + e; }
-  clearTimeout(t);
+  } catch (e) {
+    document.getElementById('ans').textContent =
+      (e.name === 'AbortError' ? 'Tardó +5 min: pulsa Preguntar de nuevo (el servidor ya quedó tibio). ' : 'Error: ' + e);
+  }
+  clearTimeout(t); clearTimeout(kill);
   document.getElementById('spin').style.display = 'none';
   document.getElementById('wake').style.display = 'none';
 }
