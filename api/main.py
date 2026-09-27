@@ -36,24 +36,27 @@ def llm_answer(q: str, lang: str, context: str) -> str:
     nv = os.getenv("NVIDIA_API_KEY", "")
     rk = os.getenv("FREELLMAPI_API_KEY", "")
     if nv or rk:
-        from src.fallback import call_with_fallback
+        try:
+            from src.fallback import call_with_fallback
 
-        def primary():
-            if not nv:
-                raise RuntimeError("sin NVIDIA_API_KEY")
-            return _chat(sys, user, "https://integrate.api.nvidia.com/v1", nv,
-                         os.getenv("NIM_CHAT_MODEL", "nvidia/nemotron-3.5-lightning-30b-a3b"), 1500)
+            def primary():
+                if not nv:
+                    raise RuntimeError("sin NVIDIA_API_KEY")
+                return _chat(sys, user, "https://integrate.api.nvidia.com/v1", nv,
+                             os.getenv("NIM_CHAT_MODEL", "nvidia/nemotron-3.5-lightning-30b-a3b"), 1500)
 
-        def fallback():
-            if not rk:
-                raise RuntimeError("sin FREELLMAPI_API_KEY")
-            return _chat(sys, user,
-                         os.getenv("FREELLMAPI_BASE_URL", "http://localhost:3001/v1"), rk,
-                         os.getenv("FALLBACK_CHAT_MODEL", "gpt-oss-20b"), 1500)
+            def fallback():
+                if not rk:
+                    raise RuntimeError("sin FREELLMAPI_API_KEY")
+                return _chat(sys, user,
+                             os.getenv("FREELLMAPI_BASE_URL", "http://localhost:3001/v1"), rk,
+                             os.getenv("FALLBACK_CHAT_MODEL", "gpt-oss-20b"), 1500)
 
-        ans, who = call_with_fallback(primary, fallback, label="ask")
-        print(f"ask servido por: {who}")
-        return ans
+            ans, who = call_with_fallback(primary, fallback, label="ask")
+            print(f"ask servido por: {who}")
+            return ans
+        except Exception as e:
+            print(f"ask LLMs no disponibles ({e.__class__.__name__}), sigo a OpenAI/extractivo")
     key = os.getenv("OPENAI_API_KEY", "")
     if key and not key.startswith("sk-change"):
         try:

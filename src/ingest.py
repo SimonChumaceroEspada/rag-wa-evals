@@ -18,8 +18,8 @@ def get_client() -> QdrantClient:
     if local_path:
         # Modo local sin Docker (CI / verificación offline).
         return QdrantClient(path=local_path)
-    url = os.getenv("QDRANT_URL", "http://localhost:6333")
-    api_key = os.getenv("QDRANT_API_KEY", "") or None  # Qdrant Cloud (deploy)
+    url = os.getenv("QDRANT_URL", "http://localhost:6333").strip()
+    api_key = (os.getenv("QDRANT_API_KEY", "") or "").strip() or None  # Cloud
     return QdrantClient(url=url, api_key=api_key, timeout=60)
 
 
