@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rag-wa-evals — demo RAG bilingüe</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+#ans { white-space: pre-wrap; border: 1px solid #ccc; padding: 1rem; min-height: 4rem; }
+.src { font-size: .85rem; color: #444; border-top: 1px dashed #ccc; padding: .4rem 0; }
+#spin { display: none; } #wake { display: none; color: #a60; }
+input[type=text] { width: 70%; padding: .4rem; }
+</style>
+</head>
+<body>
+<h1>rag-wa-evals <small>ES/EN RAG demo (AcmeTech, sintético)</small></h1>
+<input id="q" type="text" placeholder="¿Qué uptime garantiza AcmeTech a Enterprise?">
+<select id="lang"><option value="es">ES</option><option value="en">EN</option></select>
+<button onclick="ask()">Preguntar</button>
+<p id="spin">⏳ Buscando en 52 PDFs…</p>
+<p id="wake">🐌 Demo gratuita despertando (~1 min la primera vez). Idea: ¿un minijuego aquí? (backlog)</p>
+<h3>Respuesta</h3><div id="ans"></div>
+<h3>Fuentes</h3><div id="srcs"></div>
+<script>
+let t;
+async function ask() {
+  const q = document.getElementById('q').value, lang = document.getElementById('lang').value;
+  document.getElementById('ans').textContent = ''; document.getElementById('srcs').innerHTML = '';
+  document.getElementById('spin').style.display = 'block';
+  document.getElementById('wake').style.display = 'none';
+  clearTimeout(t);
+  t = setTimeout(() => document.getElementById('wake').style.display = 'block', 8000);
+  try {
+    const r = await fetch(`/ask?q=${encodeURIComponent(q)}&lang=${lang}`);
+    const d = await r.json();
+    document.getElementById('ans').textContent = d.answer || JSON.stringify(d);
+    document.getElementById('srcs').innerHTML = (d.sources || []).map((s, i) =>
+      `<div class="src">[${i + 1}] <b>${s.source}</b> (score ${Number(s.score).toFixed(3)})<br>${s.text.slice(0, 300)}…</div>`).join('');
+  } catch (e) { document.getElementById('ans').textContent = 'Error: ' + e; }
+  clearTimeout(t);
+  document.getElementById('spin').style.display = 'none';
+  document.getElementById('wake').style.display = 'none';
+}
+</script>
+</body>
+</html>

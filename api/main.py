@@ -2,12 +2,20 @@ import os
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from src.embed import embed
 from src.ingest import get_client
 
 load_dotenv()
 app = FastAPI(title="rag-wa-evals")
+app.mount("/static", StaticFiles(directory="api/static"), name="static")
+
+
+@app.get("/")
+def home():
+    return FileResponse("api/static/index.html")
 
 
 def _chat(system: str, user: str, base_url: str, api_key: str, model: str, tokens: int) -> str:
