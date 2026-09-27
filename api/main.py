@@ -51,6 +51,7 @@ def answer_leaked(ans: str) -> bool:
 
 def extractive(lang: str, context: str) -> str:
     first = context.split("\n")[0] if context else ""
+    first = first[:600] + ("…" if len(first) > 600 else "")
     if lang == "es":
         return f"Basado en [1]: {first} [1]"
     return f"Based on [1]: {first} [1]"
