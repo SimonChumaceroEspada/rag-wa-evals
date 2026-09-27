@@ -19,7 +19,8 @@ def get_client() -> QdrantClient:
         # Modo local sin Docker (CI / verificación offline).
         return QdrantClient(path=local_path)
     url = os.getenv("QDRANT_URL", "http://localhost:6333")
-    return QdrantClient(url=url, timeout=60)
+    api_key = os.getenv("QDRANT_API_KEY", "") or None  # Qdrant Cloud (deploy)
+    return QdrantClient(url=url, api_key=api_key, timeout=60)
 
 
 def ensure_collection(client: QdrantClient, name: str):
