@@ -33,6 +33,22 @@ def _chat(system: str, user: str, base_url: str, api_key: str, model: str, token
     return resp.choices[0].message.content
 
 
+def answer_leaked(ans: str) -> bool:
+    """Detecta razonamiento en voz alta que jamás debe ver el usuario."""
+    t = (ans or "").lower()
+    return any(m in t for m in (
+        "thinking process", "analyze user input", "paso 1: analizar",
+        "identify relevant information", "draft the answer",
+    ))
+
+
+def extractive(lang: str, context: str) -> str:
+    first = context.split("\n")[0] if context else ""
+    if lang == "es":
+        return f"Basado en [1]: {first} [1]"
+    return f"Based on [1]: {first} [1]"
+
+
 def llm_answer(q: str, lang: str, context: str) -> str:
     sys = (
         f"Answer in {'Spanish' if lang == 'es' else 'English'}. "
@@ -62,7 +78,10 @@ def llm_answer(q: str, lang: str, context: str) -> str:
 
             ans, who = call_with_fallback(primary, fallback, label="ask")
             print(f"ask servido por: {who}")
-            return ans
+            if answer_leaked(ans):
+                print("ask: reasoning filtrado, degrado a extractivo")
+            else:
+                return ans
         except Exception as e:
             print(f"ask LLMs no disponibles ({e.__class__.__name__}), sigo a OpenAI/extractivo")
     key = os.getenv("OPENAI_API_KEY", "")
@@ -84,14 +103,14 @@ def llm_answer(q: str, lang: str, context: str) -> str:
                 ],
                 max_tokens=300,
             )
-            return resp.choices[0].message.content
+            ans = resp.choices[0].message.content
+            if not answer_leaked(ans):
+                return ans
+            print("ask: reasoning filtrado (openai), degrado a extractivo")
         except Exception:
             pass
     # fallback extractivo (sin LLM, para test/offline)
-    first = context.split("\n")[0] if context else ""
-    if lang == "es":
-        return f"Basado en [1]: {first} [1]"
-    return f"Based on [1]: {first} [1]"
+    return extractive(lang, context)
 
 
 @app.get("/ask")
