@@ -10,4 +10,3 @@ evals/baseline.json
 data/acme/
 # PDFs Acme traducidos al ES (generados, pesados): no commitear (ver .hermes/specs/).
 data/acme-es/
-data/acme-es/
