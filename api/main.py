@@ -100,10 +100,9 @@ def llm_answer(q: str, lang: str, context: str) -> str:
 
             ans, who = call_with_fallback(primary, fallback, label="ask")
             print(f"ask servido por: {who}")
-            if answer_leaked(ans):
-                print("ask: reasoning filtrado, degrado a extractivo")
-            else:
+            if ans and not answer_leaked(ans):
                 return ans
+            print(f"ask: respuesta vacía o con reasoning ({type(ans).__name__}), degrado")
         except Exception as e:
             print(f"ask LLMs no disponibles ({e.__class__.__name__}), sigo a OpenAI/extractivo")
     key = os.getenv("OPENAI_API_KEY", "")
@@ -126,9 +125,9 @@ def llm_answer(q: str, lang: str, context: str) -> str:
                 max_tokens=300,
             )
             ans = resp.choices[0].message.content
-            if not answer_leaked(ans):
+            if ans and not answer_leaked(ans):
                 return ans
-            print("ask: reasoning filtrado (openai), degrado a extractivo")
+            print("ask: respuesta openai vacía/filtrada, degrado a extractivo")
         except Exception:
             pass
     # fallback extractivo (sin LLM, para test/offline)
