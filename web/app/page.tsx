@@ -24,12 +24,19 @@ const RagAdapter: ChatModelAdapter = {
       const r = await fetch(`${API}/ask?q=${encodeURIComponent(q)}&lang=${currentLang}`, {
         signal: ctrl.signal,
       });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const d = await r.json();
+      if (!d || !d.answer) throw new Error("respuesta vacía");
       const srcs = (d.sources ?? [])
         .map((s: { source: string; score: number }, i: number) => `- [${i + 1}] ${s.source} (${Number(s.score).toFixed(3)})`)
         .join("\n");
       const text = `${d.answer ?? "?"}\n\n**Fuentes:**\n${srcs}`;
       return { content: [{ type: "text", text }] };
+    } catch (e) {
+      const msg = e instanceof Error && e.name === "AbortError"
+        ? "⏱️ +5 min sin respuesta: el servidor gratuito sigue dormido o saturado. Reintenta en 1 min."
+        : `⚠️ Falló la petición (${e instanceof Error ? e.message : e}). Revisa tu conexión y reintenta.`;
+      return { content: [{ type: "text", text: msg }] };
     } finally {
       clearTimeout(kill);
       abortSignal?.removeEventListener("abort", onAbort);
@@ -42,7 +49,7 @@ export default function Home() {
   const [wake, setWake] = useState(false);
   const runtime = useLocalRuntime(RagAdapter);
   return (
-    <main className="mx-auto flex h-dvh max-w-2xl flex-col gap-2 p-4">
+    <main className="mx-auto flex h-dvh max-w-3xl flex-col gap-2 p-4">
       <div className="flex items-center gap-2">
         <h1 className="text-xl font-bold">rag-wa-evals</h1>
         <div className="ml-auto flex gap-1">
