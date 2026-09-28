@@ -17,8 +17,23 @@ def llm_score_fn(q: str, docs: list[dict]) -> list[float]:
 
     base = os.getenv("FREELLMAPI_BASE_URL", "http://localhost:3001/v1")
     key = os.getenv("FREELLMAPI_API_KEY", "")
-    if not key:
-        raise RuntimeError("sin FREELLMAPI_API_KEY")
+    try:
+        if not key:
+            raise RuntimeError("sin router")
+        return _score_with(base, key, os.getenv("RERANK_MODEL", "gpt-oss-20b"), q, docs)
+    except Exception as e:
+        print(f"rerank router falló ({e.__class__.__name__}), pruebo NIM directo")
+        nv = os.getenv("NVIDIA_API_KEY", "")
+        if not nv:
+            raise
+        return _score_with("https://integrate.api.nvidia.com/v1", nv,
+                           os.getenv("NIM_CHAT_MODEL", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+                           q, docs)
+
+
+def _score_with(base: str, key: str, model: str, q: str, docs: list[dict]) -> list[float]:
+    from openai import OpenAI
+
     client = OpenAI(base_url=base, api_key=key, timeout=120)
     if not docs:
         return []
@@ -32,7 +47,7 @@ def llm_score_fn(q: str, docs: list[dict]) -> list[float]:
     )
     def ask(extra=""):
         r = client.chat.completions.create(
-            model=os.getenv("RERANK_MODEL", "gpt-oss-20b"),
+            model=model,
             messages=[
                 {"role": "system", "content": "You output ONLY a JSON list of numbers, never explanations, never thinking."},
                 {"role": "user", "content": prompt + extra},
