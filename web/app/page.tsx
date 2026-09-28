@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AssistantRuntimeProvider,
   useLocalRuntime,
@@ -16,6 +16,7 @@ const RagAdapter: ChatModelAdapter = {
   async run({ messages, abortSignal }) {
     const last = [...messages].reverse().find((m) => m.role === "user");
     const q = last?.content?.[0]?.type === "text" ? last.content[0].text : "";
+    if (typeof window !== "undefined") window.__rag = { start: Date.now(), done: false };
     const ctrl = new AbortController();
     const kill = setTimeout(() => ctrl.abort(), 5 * 60 * 1000);
     const onAbort = () => ctrl.abort();
@@ -31,8 +32,10 @@ const RagAdapter: ChatModelAdapter = {
         .map((s: { source: string; score: number }, i: number) => `- [${i + 1}] ${s.source} (${Number(s.score).toFixed(3)})`)
         .join("\n");
       const text = `${d.answer ?? "?"}\n\n**Fuentes:**\n${srcs}`;
+      if (typeof window !== "undefined") window.__rag = { start: 0, done: true };
       return { content: [{ type: "text", text }] };
     } catch (e) {
+      if (typeof window !== "undefined") window.__rag = { start: 0, done: true };
       const msg = e instanceof Error && e.name === "AbortError"
         ? "⏱️ +5 min sin respuesta: el servidor gratuito sigue dormido o saturado. Reintenta en 1 min."
         : `⚠️ Falló la petición (${e instanceof Error ? e.message : e}). Revisa tu conexión y reintenta.`;
@@ -44,12 +47,44 @@ const RagAdapter: ChatModelAdapter = {
   },
 };
 
+declare global { var __rag: { start: number; done: boolean } | undefined }
+
+const STAGES = ["buscando en 52 PDFs…", "fusionando denso + BM25…", "reordenando top-20…", "redactando con citas…"];
+
+function RunStatus() {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => tick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const run = typeof window !== "undefined" ? window.__rag : undefined;
+  if (!run || run.done) return null;
+  const s = Math.floor((Date.now() - run.start) / 1000);
+  const [num, setNum] = useState(7);
+  const [msg, setMsg] = useState("Adivina 1-10 mientras esperas:");
+  const [tries, setTries] = useState(0);
+  return (
+    <div className="rounded-lg border p-3 text-sm">
+      <p>⏳ {STAGES[Math.min(Math.floor(s / 15), STAGES.length - 1)]} ({s}s)</p>
+      <p className="mt-2">
+        {msg}{" "}
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+          <button key={n} className="mx-0.5 rounded border px-1" onClick={() => {
+            setTries((t) => t + 1);
+            setMsg(n === num ? `¡Sí! era el ${num} en ${tries + 1} intentos 🎉` : n < num ? "más alto…" : "más bajo…");
+            if (n === num) { setNum(1 + Math.floor(Math.random() * 10)); setTries(0); }
+          }}>{n}</button>
+        ))}
+      </p>
+    </div>
+  );
+}
 export default function Home() {
   const [lang, setLang] = useState("es");
   const [wake, setWake] = useState(false);
   const runtime = useLocalRuntime(RagAdapter);
   return (
-    <main className="mx-auto flex h-dvh max-w-3xl flex-col gap-2 p-4">
+    <main className="mx-auto flex h-dvh max-w-4xl flex-col gap-2 p-4">
       <div className="flex items-center gap-2">
         <h1 className="text-xl font-bold">rag-wa-evals</h1>
         <div className="ml-auto flex gap-1">
@@ -77,6 +112,7 @@ export default function Home() {
         </p>
       )}
       <AssistantRuntimeProvider runtime={runtime}>
+        <RunStatus />
         <Thread />
       </AssistantRuntimeProvider>
     </main>
