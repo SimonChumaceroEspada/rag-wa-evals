@@ -20,6 +20,22 @@ input[type=text] { width: 70%; padding: .4rem; }
 <input id="q" type="text" placeholder="¿Qué uptime garantiza AcmeTech a Enterprise?">
 <select id="lang"><option value="es">ES</option><option value="en">EN</option></select>
 <button onclick="ask()">Preguntar</button>
+<div id="demo"></div>
+<script>
+const DEMO = [
+  ["¿uptime Enterprise?", "es"],
+  ["Tell me about the coding practices.", "en"],
+  ["¿vacaciones al año?", "es"],
+  ["P1 response time Enterprise?", "en"],
+  ["¿Qué cubre el NDA?", "es"],
+];
+document.getElementById('demo').innerHTML = '<p><b>Demo en 1 click:</b> ' +
+  DEMO.map((d, i) => `<button onclick="demo(${i})">${d[1].toUpperCase()} ${i + 1}</button>`).join(' ') + '</p>';
+function demo(i) {
+  document.getElementById('q').value = DEMO[i][0];
+  document.getElementById('lang').value = DEMO[i][1];
+  ask();
+}
 <p id="spin">⏳ Buscando en 52 PDFs…</p>
 <p id="wake">🐌 Demo gratuita despertando (~1 min la primera vez). Idea: ¿un minijuego aquí? (backlog)</p>
 <h3>Respuesta</h3><div id="ans"></div>

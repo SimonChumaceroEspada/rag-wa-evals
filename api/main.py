@@ -62,7 +62,8 @@ def llm_answer(q: str, lang: str, context: str) -> str:
         f"Answer in {'Spanish' if lang == 'es' else 'English'}. "
         "Cite sources with [1][2]. Use only the context. "
         "Reply DIRECTLY with the final answer and its citations; "
-        "do not show your reasoning process."
+        "do not show your reasoning process. "
+        "At most 120 words."
     )
     user = f"Q: {q}\nContext:\n{context}"
     nv = os.getenv("NVIDIA_API_KEY", "")
