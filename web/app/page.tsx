@@ -84,7 +84,7 @@ export default function Home() {
   const [wake, setWake] = useState(false);
   const runtime = useLocalRuntime(RagAdapter);
   return (
-    <main className="flex h-dvh w-full flex-col p-4">
+    <main className="flex h-dvh w-full flex-col px-6 py-4 md:px-10">
       <div className="flex min-h-0 w-full flex-1 flex-col gap-2">
         <div className="flex items-center gap-2">
           <h1 className="text-xl font-bold">rag-wa-evals</h1>

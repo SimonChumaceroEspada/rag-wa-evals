@@ -201,11 +201,11 @@ const ThreadRoot: FC<{ isEmpty: boolean; autoFocus: boolean }> = ({
       <ThreadPrimitive.Viewport
         turnAnchor="top"
         data-slot="aui_thread-viewport"
-        className="relative flex flex-1 flex-col overflow-x-hidden overflow-y-scroll scroll-smooth"
+        className="relative flex flex-1 flex-col overflow-x-hidden overflow-y-auto scroll-smooth"
       >
         <div
           className={cn(
-            "mx-auto flex w-full max-w-(--thread-max-width) flex-1 flex-col px-4 pt-4",
+            "mx-auto flex w-full max-w-(--thread-max-width) flex-1 flex-col px-0 pt-4",
             isEmpty && "justify-center",
           )}
         >
