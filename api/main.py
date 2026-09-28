@@ -28,16 +28,6 @@ def home():
 _ASK_CACHE: dict = {}
 
 
-@app.get("/ask")
-def ask(q: str, lang: str = "es"):
-    if lang not in ("es", "en"):
-        lang = "es"
-    key = (q.strip().lower(), lang)
-    if key in _ASK_CACHE:
-        print("ask: caché exacta")
-        return _ASK_CACHE[key]
-
-
 def _chat(system: str, user: str, base_url: str, api_key: str, model: str, tokens: int) -> str:
     from openai import OpenAI
 
@@ -138,6 +128,10 @@ def llm_answer(q: str, lang: str, context: str) -> str:
 def ask(q: str, lang: str = "es"):
     if lang not in ("es", "en"):
         lang = "es"
+    key = (q.strip().lower(), lang)
+    if key in _ASK_CACHE:
+        print("ask: caché exacta")
+        return _ASK_CACHE[key]
     col = f"docs_{lang}"
     client = get_client()
     qvec = embed([q])[0]
