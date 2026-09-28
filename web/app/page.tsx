@@ -85,7 +85,7 @@ export default function Home() {
   const runtime = useLocalRuntime(RagAdapter);
   return (
     <main className="flex h-dvh w-full flex-col p-4">
-      <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col gap-2">
+      <div className="flex min-h-0 w-full flex-1 flex-col gap-2">
         <div className="flex items-center gap-2">
           <h1 className="text-xl font-bold">rag-wa-evals</h1>
           <div className="ml-auto flex gap-1">
