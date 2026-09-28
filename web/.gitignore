@@ -8,3 +8,5 @@ out/
 # misc
 .DS_Store
 *.tsbuildinfo
+
+.vercel
