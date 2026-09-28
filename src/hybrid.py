@@ -4,6 +4,8 @@ Los ids de chunk son md5-hex en UUID (idénticos a ingest) para fusionar.
 """
 
 import hashlib
+import os
+import pickle
 import re
 import unicodedata
 import uuid
@@ -12,6 +14,7 @@ from rank_bm25 import BM25Okapi
 
 RRF_K = 60
 _INDEX_CACHE: dict = {}
+_INDEX_DIR = os.environ.get("HYBRID_CACHE_DIR", "/tmp" if os.name != "nt" else os.getenv("TEMP", "/tmp"))
 
 
 def tokenize(text: str) -> list[str]:
@@ -61,10 +64,44 @@ def build_index(lang: str) -> dict:
     }
 
 
+def _cache_paths(lang: str):
+    import pathlib
+
+    d = pathlib.Path(_INDEX_DIR) / "rag-wa-bm25"
+    d.mkdir(parents=True, exist_ok=True)
+    return d / f"{lang}.pkl", d / f"{lang}.meta.json"
+
+
 def get_index(lang: str) -> dict:
-    if lang not in _INDEX_CACHE:
-        _INDEX_CACHE[lang] = build_index(lang)
-    return _INDEX_CACHE[lang]
+    import json
+    import pathlib
+
+    if lang in _INDEX_CACHE:
+        return _INDEX_CACHE[lang]
+    from src.ingest import collect_lang_files
+
+    files = sorted(str(f) for f in collect_lang_files(lang))
+    sig = {"files": files, "mtimes": [pathlib.Path(f).stat().st_mtime for f in files]}
+    pkl, meta = _cache_paths(lang)
+    try:
+        if pkl.exists() and json.loads(meta.read_text()) == sig:
+            with open(pkl, "rb") as fh:
+                idx = pickle.load(fh)
+            idx["bm25"] = BM25Okapi([tokenize(t) for t in idx["texts"]])
+            _INDEX_CACHE[lang] = idx
+            print(f"bm25 {lang}: índice desde caché ({len(idx['texts'])} chunks)")
+            return idx
+    except Exception as e:
+        print(f"bm25 caché inválida ({e.__class__.__name__}), reconstruyo")
+    idx = build_index(lang)
+    try:
+        with open(pkl, "wb") as fh:
+            pickle.dump({k: v for k, v in idx.items() if k != "bm25"}, fh)
+        meta.write_text(json.dumps(sig))
+    except Exception as e:
+        print(f"bm25 no se pudo cachear ({e.__class__.__name__})")
+    _INDEX_CACHE[lang] = idx
+    return idx
 
 
 def search_bm25(idx: dict, query: str, k: int = 10) -> list[tuple]:
