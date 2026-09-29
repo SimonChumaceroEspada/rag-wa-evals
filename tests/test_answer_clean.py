@@ -24,6 +24,44 @@ def test_strip_reasoning_empty_when_all_reasoning():
     assert strip_reasoning("Thinking Process:\n1. Analyze User Input: bla") == ""
 
 
+def test_llm_chain_skips_reasoning_only_candidate(monkeypatch):
+    import api.main as m
+
+    monkeypatch.setenv("GROQ_API_KEY", "gsk_test")
+    monkeypatch.setenv("NVIDIA_API_KEY", "nvapi_test")
+    monkeypatch.setenv("FREELLMAPI_API_KEY", "")
+    monkeypatch.setenv("OPENAI_API_KEY", "")
+    seen = []
+
+    def fake_chat(system, user, base_url, api_key, model, tokens):
+        seen.append(base_url)
+        if "groq" in base_url:
+            return "Thinking Process:\n1. Analyze User Input: uptime"
+        return "AcmeTech garantiza 99.9% de uptime a Enterprise [1]."
+
+    monkeypatch.setattr(m, "_chat", fake_chat)
+    out = m.llm_answer("¿uptime?", "es", "[1] AcmeTech garantiza 99.9% de uptime a Enterprise.")
+    assert "99.9%" in out
+    assert seen == ["https://api.groq.com/openai/v1", "https://integrate.api.nvidia.com/v1"]
+
+
+def test_llm_chain_falls_back_to_extractive(monkeypatch):
+    import api.main as m
+
+    monkeypatch.setenv("GROQ_API_KEY", "gsk_test")
+    monkeypatch.setenv("NVIDIA_API_KEY", "")
+    monkeypatch.setenv("FREELLMAPI_API_KEY", "")
+    monkeypatch.setenv("OPENAI_API_KEY", "")
+
+    def boom(*a, **k):
+        raise RuntimeError("caído")
+
+    monkeypatch.setattr(m, "_chat", boom)
+    out = m.llm_answer("uptime", "es", "[1] AcmeTech ofrece 99.9% de uptime.")
+    assert out.startswith("Según las fuentes [1]:")
+    assert "99.9%" in out
+
+
 def test_thinking_leak_detected():
     assert answer_leaked("Here's a thinking process:\n1. Analyze User Input: bla") is True
     assert answer_leaked("AcmeTech garantiza 99.9% de uptime [2]") is False

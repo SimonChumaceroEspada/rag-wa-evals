@@ -102,6 +102,28 @@ def extractive(lang: str, q: str, context: str) -> str:
     return f"{head} [1]: {body} [1]"
 
 
+def llm_candidates() -> list[tuple[str, str, str, str]]:
+    """(nombre, base_url, api_key, modelo) en orden de preferencia para redactar."""
+    out: list[tuple[str, str, str, str]] = []
+    gq = os.getenv("GROQ_API_KEY", "").strip()
+    if gq:
+        out.append(("groq", "https://api.groq.com/openai/v1", gq,
+                    os.getenv("GROQ_CHAT_MODEL", "llama-3.3-70b-versatile")))
+    nv = os.getenv("NVIDIA_API_KEY", "").strip()
+    if nv:
+        out.append(("nim", "https://integrate.api.nvidia.com/v1", nv,
+                    os.getenv("NIM_CHAT_MODEL", "nvidia/nemotron-3.5-lightning-30b-a3b")))
+    rk = os.getenv("FREELLMAPI_API_KEY", "").strip()
+    if rk:
+        out.append(("router", os.getenv("FREELLMAPI_BASE_URL", "http://localhost:3001/v1").strip(), rk,
+                    os.getenv("FALLBACK_CHAT_MODEL", "gpt-oss-20b")))
+    ok = os.getenv("OPENAI_API_KEY", "").strip()
+    if ok and not ok.startswith("sk-change"):
+        out.append(("openai", "https://api.openai.com/v1", ok,
+                    os.getenv("LLM_MODEL", "gpt-4o-mini")))
+    return out
+
+
 def llm_answer(q: str, lang: str, context: str) -> str:
     sys = (
         f"Answer in {'Spanish' if lang == 'es' else 'English'}. "
@@ -111,61 +133,19 @@ def llm_answer(q: str, lang: str, context: str) -> str:
         "At most 120 words."
     )
     user = f"Q: {q}\nContext:\n{context}"
-    nv = os.getenv("NVIDIA_API_KEY", "")
-    rk = os.getenv("FREELLMAPI_API_KEY", "")
-    if nv or rk:
+    for name, base, key, model in llm_candidates():
         try:
-            from src.fallback import call_with_fallback
-
-            def primary():
-                if not nv:
-                    raise RuntimeError("sin NVIDIA_API_KEY")
-                return _chat(sys, user, "https://integrate.api.nvidia.com/v1", nv,
-                             os.getenv("NIM_CHAT_MODEL", "nvidia/nemotron-3.5-lightning-30b-a3b"), 1500)
-
-            def fallback():
-                if not rk:
-                    raise RuntimeError("sin FREELLMAPI_API_KEY")
-                return _chat(sys, user,
-                             os.getenv("FREELLMAPI_BASE_URL", "http://localhost:3001/v1"), rk,
-                             os.getenv("FALLBACK_CHAT_MODEL", "gpt-oss-20b"), 1500)
-
-            ans, who = call_with_fallback(primary, fallback, label="ask")
-            print(f"ask servido por: {who}")
-            clean = strip_reasoning(ans)
-            if clean:
-                if clean != ans:
-                    print("ask: recorté razonamiento filtrado y conservé la respuesta final")
-                return clean
-            print(f"ask: solo razonamiento/vacío ({(ans or '')[:120]!r}), degrado a extractivo")
+            ans = _chat(sys, user, base, key, model, 1500)
         except Exception as e:
-            print(f"ask LLMs no disponibles ({e.__class__.__name__}), sigo a OpenAI/extractivo")
-    key = os.getenv("OPENAI_API_KEY", "")
-    if key and not key.startswith("sk-change"):
-        try:
-            from openai import OpenAI
-
-            client = OpenAI()
-            model = os.getenv("LLM_MODEL", "gpt-4o-mini")
-            sys = (
-                f"Answer in {'Spanish' if lang == 'es' else 'English'}. "
-                "Cite sources with [1][2]. Use only the context."
-            )
-            resp = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": sys},
-                    {"role": "user", "content": f"Q: {q}\nContext:\n{context}"},
-                ],
-                max_tokens=300,
-            )
-            ans = resp.choices[0].message.content
-            clean = strip_reasoning(ans)
-            if clean:
-                return clean
-            print("ask: respuesta openai solo-razonamiento/vacía, degrado a extractivo")
-        except Exception:
-            pass
+            print(f"ask: {name} falló ({e.__class__.__name__}), pruebo el siguiente")
+            continue
+        clean = strip_reasoning(ans)
+        if clean:
+            if clean != ans:
+                print(f"ask: {name} filtró razonamiento, conservé la respuesta final")
+            print(f"ask servido por: {name}")
+            return clean
+        print(f"ask: {name} devolvió solo razonamiento/vacío, pruebo el siguiente")
     # fallback extractivo (sin LLM, para test/offline)
     return extractive(lang, q, context)
 
