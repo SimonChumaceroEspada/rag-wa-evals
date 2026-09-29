@@ -1,4 +1,5 @@
 import os
+import re
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -27,6 +28,13 @@ def home():
 
 _ASK_CACHE: dict = {}
 
+_SENT_SPLIT = re.compile(r"(?<=[.!?])\s+")
+_WORD = re.compile(r"\w{4,}")
+_LEAK_MARKERS = (
+    "thinking process", "analyze user input", "paso 1: analizar",
+    "identify relevant information", "draft the answer",
+)
+
 
 def _chat(system: str, user: str, base_url: str, api_key: str, model: str, tokens: int) -> str:
     from openai import OpenAI
@@ -46,18 +54,52 @@ def _chat(system: str, user: str, base_url: str, api_key: str, model: str, token
 def answer_leaked(ans: str) -> bool:
     """Detecta razonamiento en voz alta que jamás debe ver el usuario."""
     t = (ans or "").lower()
-    return any(m in t for m in (
-        "thinking process", "analyze user input", "paso 1: analizar",
-        "identify relevant information", "draft the answer",
-    ))
+    return any(m in t for m in _LEAK_MARKERS)
 
 
-def extractive(lang: str, context: str) -> str:
-    first = context.split("\n")[0] if context else ""
-    first = first[:600] + ("…" if len(first) > 600 else "")
-    if lang == "es":
-        return f"Basado en [1]: {first} [1]"
-    return f"Based on [1]: {first} [1]"
+def strip_reasoning(ans: str) -> str:
+    """Salva el tramo final cuando el modelo filtró su razonamiento.
+
+    Devuelve "" si todo el texto es razonamiento (entonces sí hay que degradar).
+    """
+    if not ans:
+        return ""
+    if not answer_leaked(ans):
+        return ans
+    m = re.search(r"(?im)^\s*\**\s*(final answer|answer|respuesta final|respuesta)\s*\**\s*[:：]\s*", ans)
+    if m:
+        tail = ans[m.end():].strip()
+        if len(tail) >= 25:
+            return tail
+    for part in reversed(re.split(r"\n\s*\n", ans)):
+        t = part.strip()
+        if len(t) >= 25 and not answer_leaked(t):
+            return t
+    return ""
+
+
+def _norm(text: str) -> str:
+    """Quita el marcador "[n] " que viene del contexto y colapsa espacios."""
+    return " ".join(re.sub(r"^\s*\[\d+\]\s*", "", text or "").split())
+
+
+def _clip(text: str, limit: int = 400) -> str:
+    """Corta en un límite de palabra: nunca a mitad de palabra."""
+    if len(text) <= limit:
+        return text
+    return text[:limit].rsplit(" ", 1)[0].rstrip(" ,;:") + "…"
+
+
+def extractive(lang: str, q: str, context: str) -> str:
+    """Fallback sin LLM: frases del chunk top-1, priorizando las que solapan con la pregunta."""
+    first = _norm(context.split("\n")[0] if context else "")
+    sents = [s for s in _SENT_SPLIT.split(first) if s.strip()]
+    terms = set(_WORD.findall((q or "").lower()))
+    scored = [(len(terms & set(_WORD.findall(s.lower()))), s) for s in sents]
+    picked = [s for sc, s in scored if sc > 0][:3] or sents[:2]
+    body = _clip(" ".join(picked) if picked else first)
+    head = "Según las fuentes" if lang == "es" else "According to the sources"
+    return f"{head} [1]: {body} [1]"
 
 
 def llm_answer(q: str, lang: str, context: str) -> str:
@@ -90,9 +132,12 @@ def llm_answer(q: str, lang: str, context: str) -> str:
 
             ans, who = call_with_fallback(primary, fallback, label="ask")
             print(f"ask servido por: {who}")
-            if ans and not answer_leaked(ans):
-                return ans
-            print(f"ask: respuesta vacía o con reasoning ({type(ans).__name__}), degrado")
+            clean = strip_reasoning(ans)
+            if clean:
+                if clean != ans:
+                    print("ask: recorté razonamiento filtrado y conservé la respuesta final")
+                return clean
+            print(f"ask: solo razonamiento/vacío ({(ans or '')[:120]!r}), degrado a extractivo")
         except Exception as e:
             print(f"ask LLMs no disponibles ({e.__class__.__name__}), sigo a OpenAI/extractivo")
     key = os.getenv("OPENAI_API_KEY", "")
@@ -115,13 +160,14 @@ def llm_answer(q: str, lang: str, context: str) -> str:
                 max_tokens=300,
             )
             ans = resp.choices[0].message.content
-            if ans and not answer_leaked(ans):
-                return ans
-            print("ask: respuesta openai vacía/filtrada, degrado a extractivo")
+            clean = strip_reasoning(ans)
+            if clean:
+                return clean
+            print("ask: respuesta openai solo-razonamiento/vacía, degrado a extractivo")
         except Exception:
             pass
     # fallback extractivo (sin LLM, para test/offline)
-    return extractive(lang, context)
+    return extractive(lang, q, context)
 
 
 @app.get("/ask")

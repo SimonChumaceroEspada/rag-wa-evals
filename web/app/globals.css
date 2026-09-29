@@ -137,6 +137,11 @@
   * {
     @apply border-border outline-ring/50;
     }
+  /* Tailwind v4 defaults buttons to cursor: default; shadcn expects a pointer. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+    }
   body {
     @apply bg-background text-foreground;
     }
