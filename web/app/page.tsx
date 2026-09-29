@@ -8,6 +8,8 @@ import {
 } from "@assistant-ui/react";
 import { Thread } from "@/components/thread.aui";
 import { Button } from "@/components/ui/button";
+import { Sidebar, SidebarToggle } from "@/components/sidebar";
+import { UiContext, type Lang, type UiValue } from "@/lib/ui";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://rag-wa-evals.onrender.com";
 let currentLang = "es";
@@ -53,6 +55,9 @@ const STAGES = ["buscando en 52 PDFs…", "fusionando denso + BM25…", "reorden
 
 function RunStatus() {
   const [, tick] = useState(0);
+  const [num, setNum] = useState(7);
+  const [msg, setMsg] = useState("Adivina 1-10 mientras esperas:");
+  const [tries, setTries] = useState(0);
   useEffect(() => {
     const id = setInterval(() => tick((t) => t + 1), 1000);
     return () => clearInterval(id);
@@ -60,9 +65,6 @@ function RunStatus() {
   const run = typeof window !== "undefined" ? window.__rag : undefined;
   if (!run || run.done) return null;
   const s = Math.floor((Date.now() - run.start) / 1000);
-  const [num, setNum] = useState(7);
-  const [msg, setMsg] = useState("Adivina 1-10 mientras esperas:");
-  const [tries, setTries] = useState(0);
   return (
     <div className="rounded-lg border p-3 text-sm">
       <p>⏳ {STAGES[Math.min(Math.floor(s / 15), STAGES.length - 1)]} ({s}s)</p>
@@ -80,43 +82,57 @@ function RunStatus() {
   );
 }
 export default function Home() {
-  const [lang, setLang] = useState("es");
+  const [lang, setLang] = useState<Lang>("es");
+  const [sidebar, setSidebar] = useState(true);
   const [wake, setWake] = useState(false);
   const runtime = useLocalRuntime(RagAdapter);
+  const ui: UiValue = {
+    lang,
+    sidebar,
+    toggleSidebar: () => setSidebar((s) => !s),
+    send: (text) => runtime.thread.append(text),
+    reset: () => runtime.thread.reset(),
+  };
   return (
-    <main className="flex h-dvh w-full flex-col px-6 py-4 md:px-16 2xl:px-24">
-      <div className="flex min-h-0 w-full flex-1 flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl font-bold">rag-wa-evals</h1>
-          <div className="ml-auto flex gap-1">
-            {(["es", "en"] as const).map((l) => (
-              <Button
-                key={l}
-                size="sm"
-                variant={lang === l ? "default" : "outline"}
-                onClick={() => { setLang(l); currentLang = l; }}
-              >
-                {l.toUpperCase()}
-              </Button>
-            ))}
+    <UiContext.Provider value={ui}>
+      <main className="flex h-dvh w-full">
+        <Sidebar />
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col px-4 md:px-10">
+          <div className="flex items-center gap-2 py-2">
+            <SidebarToggle />
+            <h1 className="text-xl font-bold">rag-wa-evals</h1>
+            <div className="ml-auto flex gap-1">
+              {(["es", "en"] as const).map((l) => (
+                <Button
+                  key={l}
+                  size="sm"
+                  variant={lang === l ? "default" : "outline"}
+                  onClick={() => { setLang(l); currentLang = l; }}
+                >
+                  {l.toUpperCase()}
+                </Button>
+              ))}
+            </div>
           </div>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Demo RAG bilingüe (AcmeTech sintético). Gratis: ~1 min la primera vez.
-          <button className="ml-2 underline" onClick={() => setWake((w) => !w)}>
-            {wake ? "ocultar" : "¿por qué tarda?"}
-          </button>
-        </p>
-        {wake && (
-          <p className="text-sm text-amber-600">
-            El servidor gratuito duerme sin tráfico; la primera pregunta lo despierta (~1 min). Las siguientes vuelan.
+          <p className="text-sm text-muted-foreground">
+            Demo RAG bilingüe (AcmeTech sintético). Gratis: ~1 min la primera vez.
+            <button className="ml-2 underline" onClick={() => setWake((w) => !w)}>
+              {wake ? "ocultar" : "¿por qué tarda?"}
+            </button>
           </p>
-        )}
-        <AssistantRuntimeProvider runtime={runtime}>
-          <RunStatus />
-          <Thread />
-        </AssistantRuntimeProvider>
-      </div>
-    </main>
+          {wake && (
+            <p className="text-sm text-amber-600">
+              El servidor gratuito duerme sin tráfico; la primera pregunta lo despierta (~1 min). Las siguientes vuelan.
+            </p>
+          )}
+          <AssistantRuntimeProvider runtime={runtime}>
+            <div className="mx-auto w-full max-w-3xl pt-4">
+              <RunStatus />
+            </div>
+            <Thread />
+          </AssistantRuntimeProvider>
+        </div>
+      </main>
+    </UiContext.Provider>
   );
 }
