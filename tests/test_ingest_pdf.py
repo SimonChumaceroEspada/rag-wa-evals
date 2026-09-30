@@ -30,3 +30,14 @@ def test_collect_files_old_dirs_still_work():
 
     es = collect_files(pathlib.Path("data/es"))
     assert any(f.suffix == ".md" for f in es), "data/es/*.md ya no se indexa"
+
+
+def test_teaching_fixtures_never_reach_the_index():
+    """cats/gatos/rag-intro son material de clase, no corpus: no se indexan."""
+    from src.ingest import collect_lang_files
+
+    fixtures = {"cats.md", "gatos.md", "rag-intro.md"}
+    for lang in ("en", "es"):
+        names = {f.name for f in collect_lang_files(lang)}
+        assert not (names & fixtures), f"{lang}: el corpus contiene fixtures {names & fixtures}"
+        assert names, f"{lang}: el corpus real quedó vacío"

@@ -4,7 +4,7 @@ def test_ask_returns_sources():
     from api.main import app
 
     client = TestClient(app)
-    r = client.get("/ask", params={"q": "gatos", "lang": "es"})
+    r = client.get("/ask", params={"q": "¿Qué uptime garantiza AcmeTech a Enterprise?", "lang": "es"})
     assert r.status_code == 200
     data = r.json()
     assert "answer" in data and len(data["answer"]) > 0

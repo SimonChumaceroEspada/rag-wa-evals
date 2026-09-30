@@ -85,12 +85,17 @@ def collect_files(data_dir: pathlib.Path) -> list[pathlib.Path]:
     return files
 
 
+# Material de clase (chunking overlap, demos de S1). Vive en data/en|es pero NO es corpus:
+# al indexarlo, una query genérica en inglés devolvía cats.md como fuente #1.
+NON_CORPUS = {"cats.md", "gatos.md", "rag-intro.md"}
+
+
 def collect_lang_files(lang: str) -> list[pathlib.Path]:
     files: list[pathlib.Path] = []
     for d in LANG_DIRS[lang]:
         p = pathlib.Path(d)
         if p.exists():
-            files.extend(collect_files(p))
+            files.extend(f for f in collect_files(p) if f.name not in NON_CORPUS)
     return sorted(files)
 
 
