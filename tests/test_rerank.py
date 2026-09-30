@@ -90,6 +90,10 @@ def test_rerank_scorer_disables_nim_reasoning(monkeypatch):
 def test_rerank_uses_fast_provider_first(monkeypatch):
     import src.rerank as r
 
+    # sin Gemini configurado el primer candidato sigue siendo NIM.
+    # "" en vez de delenv: llm_score_fn llama a load_dotenv() y lo repondría.
+    monkeypatch.setenv("GEMINI_API_KEY", "")
+    monkeypatch.setenv("GEMINI_CHAT_MODEL", "")
     monkeypatch.setenv("NVIDIA_API_KEY", "nv")
     monkeypatch.setenv("FREELLMAPI_API_KEY", "fr")
     calls = []
@@ -101,3 +105,63 @@ def test_rerank_uses_fast_provider_first(monkeypatch):
     monkeypatch.setattr(r, "_score_with", spy)
     r.llm_score_fn("q", [{"text": "a"}])
     assert calls == [True], f"orden de proveedores {calls}: NIM con effort=none es rápido y fiable"
+
+
+def test_rerank_prefers_gemini_when_configured(monkeypatch):
+    import src.rerank as r
+
+    monkeypatch.setenv("GEMINI_API_KEY", "gk")
+    monkeypatch.setenv("GEMINI_CHAT_MODEL", "gemini-3.5-flash-lite")
+    monkeypatch.setenv("NVIDIA_API_KEY", "nv")
+    monkeypatch.setenv("FREELLMAPI_API_KEY", "fr")
+    calls = []
+
+    def spy(base, key, model, q, docs):
+        calls.append(base)
+        return [1.0] * len(docs)
+
+    monkeypatch.setattr(r, "_score_with", spy)
+    r.llm_score_fn("q", [{"text": "a"}])
+    assert "generativelanguage" in calls[0], f"gemini debía ir primero, orden: {calls}"
+    assert len(calls) == 1, f"gemini contestó y aun así probó otro: {calls}"
+
+
+def test_rerank_falls_back_when_gemini_fails(monkeypatch):
+    import src.rerank as r
+
+    monkeypatch.setenv("GEMINI_API_KEY", "gk")
+    monkeypatch.setenv("GEMINI_CHAT_MODEL", "gemini-3.5-flash-lite")
+    monkeypatch.setenv("NVIDIA_API_KEY", "nv")
+    monkeypatch.setenv("FREELLMAPI_API_KEY", "fr")
+    calls = []
+
+    def spy(base, key, model, q, docs):
+        calls.append(base)
+        if "generativelanguage" in base:
+            raise RuntimeError("429")
+        return [1.0] * len(docs)
+
+    monkeypatch.setattr(r, "_score_with", spy)
+    scores = r.llm_score_fn("q", [{"text": "a"}])
+    assert scores == [1.0], "debía degradar al siguiente proveedor"
+    assert "generativelanguage" in calls[0] and "nvidia" in calls[1], f"orden: {calls}"
+
+
+def test_rerank_skips_gemini_without_model(monkeypatch):
+    import src.rerank as r
+
+    monkeypatch.setenv("GEMINI_API_KEY", "gk")
+    monkeypatch.setenv("GEMINI_CHAT_MODEL", "")  # "" = load_dotenv no lo repone
+    monkeypatch.setenv("NVIDIA_API_KEY", "nv")
+    monkeypatch.setenv("FREELLMAPI_API_KEY", "")
+    calls = []
+
+    def spy(base, key, model, q, docs):
+        calls.append(base)
+        return [1.0] * len(docs)
+
+    monkeypatch.setattr(r, "_score_with", spy)
+    r.llm_score_fn("q", [{"text": "a"}])
+    assert all("generativelanguage" not in b for b in calls), (
+        "sin GEMINI_CHAT_MODEL no debe probar un modelo por su cuenta"
+    )

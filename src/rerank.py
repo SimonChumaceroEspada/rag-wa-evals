@@ -1,6 +1,7 @@
 """Rerank listwise: reordena los top-20 (RRF) y deja top-5.
 
-Scorer default: NIM con reasoning effort=none (1-3s, ordena bien); si falla,
+Scorer default: Gemini si GEMINI_CHAT_MODEL está configurado (1-2s y el free
+tier más generoso); después NIM con reasoning effort=none (1-3s); después el
 router gpt-oss-20b. Si falla todo: orden RRF (nunca rompe /ask).
 """
 
@@ -14,9 +15,16 @@ def llm_score_fn(q: str, docs: list[dict]) -> list[float]:
 
     load_dotenv()
 
-    # NIM primero: con effort=none puntúa en ~1-3s y ordena mejor que el router,
-    # que a veces se agota en el timeout y cae al RRF crudo.
+    # Orden por latencia del scorer: gemini (1-2s) → NIM con effort=none (1-3s)
+    # → router, que a veces se agota en el timeout y cae al RRF crudo.
     tried = []
+    # Gemini solo si además hay modelo configurado: el rerank no elige un
+    # modelo por su cuenta (si no, probaríamos uno que ni sabemos si existe).
+    gk = os.getenv("GEMINI_API_KEY", "").strip()
+    gm = os.getenv("GEMINI_CHAT_MODEL", "").strip()
+    if gk and gm:
+        tried.append(("gemini", "https://generativelanguage.googleapis.com/v1beta/openai",
+                      gk, gm))
     nv = os.getenv("NVIDIA_API_KEY", "")
     if nv:
         tried.append(("nvidia", "https://integrate.api.nvidia.com/v1", nv,
