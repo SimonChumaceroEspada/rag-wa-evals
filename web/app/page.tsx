@@ -12,7 +12,7 @@ import { Sidebar, SidebarToggle } from "@/components/sidebar";
 import { UiContext, type Lang, type UiValue } from "@/lib/ui";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://rag-wa-evals.onrender.com";
-let currentLang = "es";
+let currentLang = "en";
 
 const RagAdapter: ChatModelAdapter = {
   async run({ messages, abortSignal }) {
@@ -82,7 +82,7 @@ function RunStatus() {
   );
 }
 export default function Home() {
-  const [lang, setLang] = useState<Lang>("es");
+  const [lang, setLang] = useState<Lang>("en");
   const [sidebar, setSidebar] = useState(true);
   const [wake, setWake] = useState(false);
   const runtime = useLocalRuntime(RagAdapter);

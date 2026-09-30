@@ -174,9 +174,9 @@ def llm_answer(q: str, lang: str, context: str) -> str:
 
 
 @app.get("/ask")
-def ask(q: str, lang: str = "es"):
+def ask(q: str, lang: str = "en"):
     if lang not in ("es", "en"):
-        lang = "es"
+        lang = "en"
     key = (q.strip().lower(), lang)
     if key in _ASK_CACHE:
         print("ask: caché exacta")

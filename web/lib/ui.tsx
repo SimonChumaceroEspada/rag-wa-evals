@@ -13,7 +13,7 @@ export type UiValue = {
 };
 
 export const UiContext = createContext<UiValue>({
-  lang: "es",
+  lang: "en",
   send: () => {},
   reset: () => {},
   sidebar: true,

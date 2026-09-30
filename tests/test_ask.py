@@ -23,3 +23,23 @@ def test_ask_reports_stage_timing():
     for k in ("embed", "search", "answer", "total"):
         assert k in t, f"falta la etapa '{k}' en timing"
     assert t["total"] >= max(t["embed"], t["search"], t["answer"])
+
+
+def test_ask_defaults_to_english():
+    from fastapi.testclient import TestClient
+
+    from api.main import app
+
+    r = TestClient(app).get("/ask", params={"q": "what is the leave policy"})
+    assert r.status_code == 200
+    assert r.json()["lang"] == "en", "sin lang, la app debe responder en inglés"
+
+
+def test_ask_invalid_lang_falls_back_to_english():
+    from fastapi.testclient import TestClient
+
+    from api.main import app
+
+    r = TestClient(app).get("/ask", params={"q": "hola", "lang": "xx"})
+    assert r.status_code == 200
+    assert r.json()["lang"] == "en", "un lang desconocido debe caer a inglés, no a español"
