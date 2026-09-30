@@ -1,5 +1,6 @@
 import os
 import re
+import time
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -173,8 +174,10 @@ def ask(q: str, lang: str = "es"):
         print("ask: caché exacta")
         return _ASK_CACHE[key]
     col = f"docs_{lang}"
+    t0 = time.perf_counter()
     client = get_client()
     qvec = embed([q])[0]
+    t1 = time.perf_counter()
     try:
         from src.hybrid import hybrid_search
         from src.rerank import rerank
@@ -192,7 +195,20 @@ def ask(q: str, lang: str = "es"):
             }
             for h in hits
         ]
+    t2 = time.perf_counter()
     context = "\n".join(f"[{i + 1}] {s['text']}" for i, s in enumerate(sources))
-    out = {"answer": llm_answer(q, lang, context), "sources": sources, "lang": lang}
+    answer = llm_answer(q, lang, context)
+    t3 = time.perf_counter()
+    out = {
+        "answer": answer,
+        "sources": sources,
+        "lang": lang,
+        "timing": {
+            "embed": round(t1 - t0, 2),
+            "search": round(t2 - t1, 2),
+            "answer": round(t3 - t2, 2),
+            "total": round(t3 - t0, 2),
+        },
+    }
     _ASK_CACHE[key] = out
     return out
