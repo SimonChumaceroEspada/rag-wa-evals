@@ -122,6 +122,11 @@ def extractive(lang: str, q: str, context: str) -> str:
 def llm_candidates() -> list[tuple[str, str, str, str]]:
     """(nombre, base_url, api_key, modelo) en orden de preferencia para redactar."""
     out: list[tuple[str, str, str, str]] = []
+    gk = os.getenv("GEMINI_API_KEY", "").strip()
+    if gk:
+        # gemini-2.5-flash: ~2s y estable; NIM cuelga hasta el timeout a veces
+        out.append(("gemini", "https://generativelanguage.googleapis.com/v1beta/openai", gk,
+                    os.getenv("GEMINI_CHAT_MODEL", "gemini-2.5-flash")))
     gq = os.getenv("GROQ_API_KEY", "").strip()
     if gq:
         out.append(("groq", "https://api.groq.com/openai/v1", gq,

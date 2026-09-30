@@ -31,6 +31,7 @@ def test_llm_chain_skips_reasoning_only_candidate(monkeypatch):
     monkeypatch.setenv("NVIDIA_API_KEY", "nvapi_test")
     monkeypatch.setenv("FREELLMAPI_API_KEY", "")
     monkeypatch.setenv("OPENAI_API_KEY", "")
+    monkeypatch.setenv("GEMINI_API_KEY", "")
     seen = []
 
     def fake_chat(system, user, base_url, api_key, model, tokens):
@@ -222,3 +223,14 @@ def test_embed_client_timeout_is_bounded(monkeypatch):
     e.embed(["hola"])
     assert seen.get("timeout", 999) <= 60, f"timeout de embed {seen.get('timeout')}s sin acotar"
     assert seen.get("max_retries", 2) <= 1, "embed reintentando en silencio"
+
+
+def test_llm_candidates_puts_gemini_first(monkeypatch):
+    import api.main as m
+
+    monkeypatch.setenv("GEMINI_API_KEY", "AIza-test")
+    monkeypatch.setenv("GROQ_API_KEY", "")
+    monkeypatch.setenv("OPENAI_API_KEY", "")
+    names = [n for n, _b, _k, _md in m.llm_candidates()]
+    assert names[0] == "gemini", f"orden {names}: gemini-2.5-flash responde en ~2s y NIM cuelga"
+    assert names[1:] == ["nim", "router"]
