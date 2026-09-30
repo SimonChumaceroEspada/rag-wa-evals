@@ -1,78 +1,178 @@
-# rag-wa-evals — Bilingual RAG (ES/EN) with citations + evals
+# rag-wa-evals — Bilingual RAG over your own docs, with citations and evals
 
-Ask your own docs in Spanish or English. One code path, `?lang=es|en`, two corpora, answers with citations.
+Ask your documents in **English or Spanish**. One code path (`?lang=en|es`), two corpora,
+two Qdrant collections, and every answer cites the sources it used (`[1][2]`).
 
-**Live demo:** `https://rag-wa-evals.onrender.com/ask?q=gatos&lang=es`
-(free tier: first request after idle takes ~1 min to wake up).
+**Live demo:** <https://rag-wa-evals-web.vercel.app/> — toggle **EN / ES** in the UI.
+**API:** `https://rag-wa-evals.onrender.com/ask?q=What%20is%20the%20leave%20policy&lang=en`
 
-```bash
-docker compose up -d qdrant          # vector DB → http://localhost:6333/dashboard
-python -m venv .venv && .venv/Scripts/activate && pip install -r requirements.txt
-python -m src.ingest --lang es && python -m src.ingest --lang en
-uvicorn api.main:app --port 8000    # GET /ask?q=gatos&lang=es
-python evals/run_ragas.py           # writes evals/baseline.json
-```
+---
+
+## Why this exists
+
+A RAG demo that answers is easy. What is not easy is knowing **why it answers**, **how long
+it takes**, and **whether it is actually right**. This project treats those three as the
+product: per-stage latency, provider fallback you can observe, and evals that gate every
+prompt/model change.
+
+- **Bilingual by construction** — not two apps: one endpoint, `lang` switches corpus + prompt.
+- **Verifiable answers** — `[1][2]` inline citations plus the retrieved `sources[]` with scores.
+- **Measured, not guessed** — `/ask` returns `timing` for every stage (embed / search / answer).
+- **Degrades instead of failing** — three LLM providers in a chain, then an extractive answer.
+- **Evaluated** — a 30-question set scores every change; see [Evaluations](#evaluations).
+
+## Latency
+
+Measured against the deployed service on **2026-09-30** (fresh query, no cache):
+
+| stage | before | now | what it does |
+|---|---|---|---|
+| `embed` | 1.0 s | **1.0 s** | NVIDIA NIM `nemotron-3-embed-1b` |
+| `search` | 11.1 s | **1.9 s** | Qdrant dense + BM25 + LLM rerank |
+| `answer` | 50.6 s | **0.9 s** | `gemini-3.5-flash-lite` |
+| **total** | **62.6 s** | **3.5 s** | 18× faster |
+
+Two real bugs produced those numbers, both found by measuring production rather than
+reading code:
+
+1. The chat model `gemini-2.5-flash` had exhausted its free quota (HTTP 429). Every request
+   silently fell through to NIM and paid a 25 s timeout. The logs showed
+   `ask: gemini falló (RateLimitError)` — the answer was always the fallback.
+2. The rerank scorer always failed (`rerank falló (RuntimeError)`) and returned the raw RRF
+   order after 10–11 s. You paid for a rerank that never ran, which is why an unrelated
+   fixture document ranked first.
+
+The service runs on Render's free tier, which sleeps after 15 minutes idle. A GitHub Actions
+cron (`.github/workflows/keep-alive.yml`) pings it every 10 minutes so the first visitor
+never pays the ~1 min cold start.
 
 ## How it works
 
 ```
-data/es|en/*.md --> chunk(600w, overlap 100) --> embed() --> Qdrant docs_es|docs_en
-                                                                            |
-GET /ask?q=...&lang=es --> embed(q) --> top-5 cosine --> prompt [1][2] --> {answer, sources[]}
+ data/en/*.md ─┐                                   ┌── docs_en (Qdrant)
+ data/es/*.md ─┼─► chunk (600w, overlap 100) ─► embed ┤
+ 26 PDFs ──────┘        deterministic                └── docs_es (Qdrant)
+
+ GET /ask?q=...&lang=en
+      │
+      ├─ embed(q)                        ~1.0s
+      ├─ Qdrant dense + BM25 → RRF
+      │     └─ LLM rerank → top-5        ~1.9s
+      └─ LLM chain → answer + [1][2]      ~0.9s
+            gemini ─► nim ─► router ─► extractive (no key needed)
 ```
 
-- `src/chunk.py` — deterministic word splitter with overlap (no idea gets cut in half).
-- `src/embed.py` — OpenAI `text-embedding-3-small` when `OPENAI_API_KEY` is set, deterministic dummy vectors offline.
-- `src/ingest.py` — idempotent upserts (`id = hash(text)`): re-running never duplicates. Reads `.md` + `.pdf` (`pypdf`, `pdfplumber` fallback); `--lang es` ingests `data/es` + `data/acme-es` (26 translated PDFs, twins of the EN ones).
-- `api/main.py` — retrieval (top-5) + LLM answer with `[1][2]` citations; extractive fallback without a key.
-- `evals/` — 30 ES Q&A (`qa_es.jsonl`, sobre el subset Acme traducido) + scorer (`run_ragas.py`). Golden rule: **no prompt/model change without re-running evals.**
+| file | role |
+|---|---|
+| `src/chunk.py` | deterministic word splitter with overlap, so no sentence is cut in half |
+| `src/embed.py` | `openai` if a real key is set → `nim` → deterministic dummy (offline/tests) |
+| `src/ingest.py` | idempotent upserts (`id = hash(text)`): re-running never duplicates |
+| `src/hybrid.py` | dense (Qdrant) + BM25 fused with Reciprocal Rank Fusion |
+| `src/rerank.py` | LLM listwise rerank of the top-20 → top-5, degrades to RRF order |
+| `api/main.py` | FastAPI: retrieval, provider chain, per-stage timing, answer cache |
+| `evals/` | 30-question set + scorer (`run_ragas.py`) |
 
-## Corpus: AcmeTech Solutions Inc. (fictional, external)
-
-The production corpus is **AcmeTech Solutions Inc.**, a fictional company from the public dataset
-[maruf6890/acmetech-enterprise-rag-dataset](https://github.com/maruf6890/acmetech-enterprise-rag-dataset)
-(26 PDFs across 7 departments + manifest + 200-question EN test set; we reuse the manifest/test set for EN).
-
-> **Permission:** granted verbally by the author on 2026-09-24 (arranged by Simón), with attribution + link
-> (this section). Even so, the original PDFs are **NOT committed** (repo hygiene: heavy binaries):
-> `data/acme/` is in `.gitignore`.
+## Quickstart
 
 ```bash
-# Download the corpus (not committed — ~432K):
-git clone --depth 1 https://github.com/maruf6890/acmetech-enterprise-rag-dataset.git /tmp/acme-src
-mkdir -p data/acme && cp -r /tmp/acme-src/AcmeTech/* data/acme/
-python -m src.ingest --lang en   # 26 PDFs -> docs_en
-python -m src.ingest --lang es   # 26 translated PDFs (twins of the EN ones) -> docs_es
-```
+docker compose up -d qdrant                        # or point QDRANT_URL at Qdrant Cloud
+python -m venv .venv && .venv/Scripts/activate
+pip install -r requirements.txt
+cp .env.example .env                               # add your keys
 
-- EN full: `data/acme/` (26 original PDFs, read directly by ingest).
-- ES full (translated by hand from EN, figures preserved, same layout): `data/acme-es/`
-  — 26 PDFs mirroring the EN set, generated from `data/es-acme/` sources.
+python -m src.ingest --lang en
+python -m src.ingest --lang es
+
+uvicorn api.main:app --reload --port 8000          # GET /ask?q=...&lang=en
+pytest -q                                          # 42 tests
+python evals/run_ragas.py                          # writes evals/baseline.json
+```
 
 ## API
 
 ```bash
-curl "http://localhost:8000/ask?q=gatos&lang=es"
-# {"answer": "Basado en [1]: ... [1]", "sources": [{"text": "...", "source": "gatos.md", "score": 0.9}], "lang": "es"}
+curl "https://rag-wa-evals.onrender.com/ask?q=What%20is%20the%20leave%20policy&lang=en"
 ```
 
-## Metrics (S1 baseline)
+```json
+{
+  "answer": "AcmeTech's leave policy includes 22 days of front-loaded PTO per year with a 5-day carryover cap, 10 separate sick days per year (no doctor's note needed) ... [1]",
+  "sources": [
+    {"text": "...", "source": "Leave_Policy.pdf", "score": 0.016},
+    {"text": "...", "source": "HR_Policy.pdf", "score": 0.016},
+    {"text": "...", "source": "Privacy_Policy.pdf", "score": 0.016}
+  ],
+  "lang": "en",
+  "timing": {"embed": 0.94, "search": 1.56, "answer": 1.12, "total": 3.62}
+}
+```
+
+`lang` defaults to `en`; an unknown value falls back to `en`. Without any provider key the
+endpoint still answers through the extractive fallback, so the pipe is testable offline.
+
+## Evaluations
+
+30 Spanish questions over the AcmeTech subset (`evals/qa_es.jsonl`), answered by the deployed
+chain, scored by a deterministic scorer:
 
 | metric | score | n | method | date |
 |---|---|---|---|---|
-| faithfulness | 1.0 | 30 | heuristic-offline | 2026-09-23 |
-| context_precision | 0.983 | 30 | heuristic-offline | 2026-09-23 |
+| faithfulness | 0.733 | 30 | live answers, heuristic scorer | 2026-09-30 |
+| context_precision | 0.731 | 30 | live answers, heuristic scorer | 2026-09-30 |
 
-> `heuristic-offline` = extractive fallback + keyword retrieval (no LLM judge yet). Scores are inflated by design — they prove the pipe works, not quality. Re-run with a real LLM (NVIDIA NIM planned) for the true baseline before changing prompts.
+- **faithfulness** — the expected fact appears in the answer (substring match, 0/1).
+- **context_precision** — reciprocal rank of the expected document among retrieved sources.
+
+These are a *plumbing* baseline, not a quality ceiling: the scorer measures recall and
+ranking, not reasoning. The next step is an LLM-as-judge (`run_ragas.py --judge`) so the
+number means something harder.
+
+**Golden rule:** no prompt or model change without re-running the evals.
+
+## Corpus: AcmeTech Solutions Inc. (fictional)
+
+AcmeTech is a fictional company from the public dataset
+[maruf6890/acmetech-enterprise-rag-dataset](https://github.com/maruf6890/acmetech-enterprise-rag-dataset)
+— 26 PDFs across 7 departments, plus a manifest and a 200-question English test set (the
+manifest/test set is reused for EN).
+
+> **Permission:** granted verbally by the author on 2026-09-24 (arranged by Simón), with
+> attribution and link as given above. The original PDFs are **not committed** (heavy
+> binaries): `data/acme/` and `data/acme-es/` are in `.gitignore`.
+
+```bash
+git clone --depth 1 https://github.com/maruf6890/acmetech-enterprise-rag-dataset.git /tmp/acme-src
+mkdir -p data/acme && cp -r /tmp/acme-src/AcmeTech/* data/acme/
+python -m src.ingest --lang en     # 26 PDFs → docs_en
+python -m src.ingest --lang es     # 26 hand-translated twins → docs_es
+```
 
 ## Layout
 
-`src/` (chunk, embed, ingest) · `api/` (FastAPI) · `data/es|en/` (corpora) · `evals/` (Q&A + scorer) · `tests/` (`pytest -q`)
+```
+api/      FastAPI service (+ legacy static UI)
+src/      chunk · embed · ingest · hybrid · rerank
+data/     en/ es/ corpora (PDFs fetched, not committed)
+evals/    question sets, scorer, baselines
+tests/    pytest suite (42)
+web/      Next.js frontend on Vercel
+```
 
 ## Roadmap
 
-S1 (here): ingest + `/ask` + baseline. Next: WhatsApp + voice, DeepEval + Langfuse.
+**S1 (this repo):** bilingual ingest, `/ask` with citations, per-stage timing, eval baseline.
+**Next:** WhatsApp + voice, LLM-as-judge, DeepEval + Langfuse.
+
+---
 
 ## Español
 
-RAG bilingüe sobre tus documentos: preguntas en `GET /ask?q=...&lang=es|en` y responde **citando** tus docs (`[1][2]` + `sources[]`). Una sola ruta de código, dos corpus (`data/es`, `data/en`), dos colecciones Qdrant (`docs_es`, `docs_en`). Los comandos son los mismos de arriba. Las métricas de la tabla son el baseline S1 (heurístico offline: alto por copiar, no por razonar — el baseline real con LLM viene en el siguiente paso). Sin Docker corriendo, `/ask` y los tests que usan Qdrant fallan por conexión, no por código: arranca con `docker compose up -d qdrant`.
+RAG bilingüe sobre tus documentos: preguntas en `GET /ask?q=...&lang=en|es` y respuestas que
+**citando** tus fuentes (`[1][2]` + `sources[]`). Una sola ruta de código, dos corpus
+(`data/en`, `data/es`), dos colecciones Qdrant (`docs_en`, `docs_es`). El idioma por defecto
+es inglés; sin claves de proveedor sigue respondiendo con el fallback extractivo.
+
+Medido el 2026-09-30: **3.5 s** por consulta (antes 62.6 s). Las métricas de la tabla son un
+baseline de *plomería* (recuerdo y ranking, no razonamiento); el juez LLM viene en el
+siguiente paso. Sin Docker/Qdrant, `/ask` y los tests que lo usan fallan por conexión, no por
+código: arranca con `docker compose up -d qdrant`.
