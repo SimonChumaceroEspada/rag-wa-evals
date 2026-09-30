@@ -101,3 +101,64 @@ def test_extractive_prefers_sentence_with_query_terms():
     a = extractive("es", "¿qué uptime garantiza AcmeTech?", ctx)
     assert "99.9% de uptime" in a
     assert "clima" not in a
+
+
+def test_word_count_leak_detected():
+    raw = 'Count words: Let me count: "AcmeTech\'s(1) coding(2) practices(3)"'
+    assert answer_leaked(raw) is True
+
+
+def test_answer_token_budget_is_small(monkeypatch):
+    import api.main as m
+
+    monkeypatch.setenv("GROQ_API_KEY", "")
+    monkeypatch.setenv("NVIDIA_API_KEY", "nvapi_test")
+    monkeypatch.setenv("FREELLMAPI_API_KEY", "")
+    monkeypatch.setenv("OPENAI_API_KEY", "")
+    seen = []
+    monkeypatch.setattr(
+        m, "_chat",
+        lambda system, user, base, key, model, tokens: (seen.append(tokens), "Respuesta limpia [1].")[1],
+    )
+    m.llm_answer("uptime", "es", "[1] AcmeTech ofrece 99.9% de uptime.")
+    assert seen and seen[0] <= 400, f"presupuesto de tokens {seen[0]} — genera respuestas que divagan"
+
+
+def test_strip_reasoning_rejects_leftover_thinking_steps():
+    raw = ("Here's a thinking process:\n\n1. **Analyze User Input:**\n"
+           "   - User asks: cuántos días de vacaciones hay\n\n"
+           "2. **Scan Context for Vacation/PTO:**\n"
+           "   - Document [3] is Leave_Policy, clearly the relevant one.\n"
+           "   - In [3], section 1: Los empleados acumulan 22 días de PTO al año.")
+    assert strip_reasoning(raw) == "", "un paso del razonamiento no puede pasar por respuesta"
+
+
+def test_chat_disables_nim_reasoning(monkeypatch):
+    import openai
+
+    import api.main as m
+
+    seen = {}
+
+    class Fake:
+        def __init__(self, **kw):
+            self.chat = self
+            self.completions = self
+
+        def create(self, **kw):
+            seen.update(kw)
+
+            class Msg:
+                content = "ok"
+
+            class Ch:
+                message = Msg()
+
+            class R:
+                choices = [Ch()]
+
+            return R()
+
+    monkeypatch.setattr(openai, "OpenAI", Fake)
+    assert m._chat("s", "u", "https://integrate.api.nvidia.com/v1", "k", "m", 400) == "ok"
+    assert seen["extra_body"]["reasoning"]["effort"] == "none", "NIM sin effort=none divaga y cuesta 16-60s"

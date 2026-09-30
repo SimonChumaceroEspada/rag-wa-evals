@@ -33,13 +33,25 @@ _WORD = re.compile(r"\w{4,}")
 _LEAK_MARKERS = (
     "thinking process", "analyze user input", "paso 1: analizar",
     "identify relevant information", "draft the answer",
+    "count words", "let me count", "let's count",
+    "scan context", "user asks", "document [",
 )
+_STEP = re.compile(r"(?m)^\s*\d+\.\s+\*\*")
+
+
+def _looks_like_reasoning(t: str) -> bool:
+    """Un tramo es razonamiento si coincide con los markers o es un paso numerado."""
+    return answer_leaked(t) or bool(_STEP.search(t))
 
 
 def _chat(system: str, user: str, base_url: str, api_key: str, model: str, tokens: int) -> str:
     from openai import OpenAI
 
-    client = OpenAI(base_url=base_url, api_key=api_key, timeout=120)
+    client = OpenAI(base_url=base_url, api_key=api_key, timeout=float(os.getenv("LLM_TIMEOUT", "45")))
+    extra: dict = {}
+    if "nvidia" in base_url:
+        # nemotron razona en voz alta si no lo apagas explícitamente
+        extra["extra_body"] = {"reasoning": {"effort": os.getenv("NIM_REASONING", "none")}}
     resp = client.chat.completions.create(
         model=model,
         messages=[
@@ -47,6 +59,7 @@ def _chat(system: str, user: str, base_url: str, api_key: str, model: str, token
             {"role": "user", "content": user},
         ],
         max_tokens=tokens,
+        **extra,
     )
     return resp.choices[0].message.content
 
@@ -73,7 +86,7 @@ def strip_reasoning(ans: str) -> str:
             return tail
     for part in reversed(re.split(r"\n\s*\n", ans)):
         t = part.strip()
-        if len(t) >= 25 and not answer_leaked(t):
+        if len(t) >= 25 and not _looks_like_reasoning(t):
             return t
     return ""
 
@@ -128,19 +141,20 @@ def llm_answer(q: str, lang: str, context: str) -> str:
     sys = (
         f"Answer in {'Spanish' if lang == 'es' else 'English'}. "
         "Cite sources with [1][2]. Use only the context. "
-        "Reply DIRECTLY with the final answer and its citations; "
-        "do not show your reasoning process. "
+        "Your FIRST line must be the final answer itself: "
+        "no preamble, no thinking process, no numbered steps, no bullet lists. "
         "At most 120 words."
     )
     user = f"Q: {q}\nContext:\n{context}"
+    tokens = int(os.getenv("ANSWER_MAX_TOKENS", "400"))
     for name, base, key, model in llm_candidates():
         try:
-            ans = _chat(sys, user, base, key, model, 1500)
+            ans = _chat(sys, user, base, key, model, tokens)
         except Exception as e:
             print(f"ask: {name} falló ({e.__class__.__name__}), pruebo el siguiente")
             continue
         clean = strip_reasoning(ans)
-        if clean:
+        if clean and not answer_leaked(clean):
             if clean != ans:
                 print(f"ask: {name} filtró razonamiento, conservé la respuesta final")
             print(f"ask servido por: {name}")
