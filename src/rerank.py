@@ -37,7 +37,8 @@ def llm_score_fn(q: str, docs: list[dict]) -> list[float]:
 def _score_with(base: str, key: str, model: str, q: str, docs: list[dict]) -> list[float]:
     from openai import OpenAI
 
-    client = OpenAI(base_url=base, api_key=key, timeout=float(os.getenv("RERANK_TIMEOUT", "10")))
+    client = OpenAI(base_url=base, api_key=key,
+                    timeout=float(os.getenv("RERANK_TIMEOUT", "10")), max_retries=0)
     if not docs:
         return []
     bundle = "\n".join(

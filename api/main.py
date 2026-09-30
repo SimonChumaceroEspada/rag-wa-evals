@@ -48,7 +48,10 @@ def _looks_like_reasoning(t: str) -> bool:
 def _chat(system: str, user: str, base_url: str, api_key: str, model: str, tokens: int) -> str:
     from openai import OpenAI
 
-    client = OpenAI(base_url=base_url, api_key=api_key, timeout=float(os.getenv("LLM_TIMEOUT", "45")))
+    # max_retries=0: el cliente reintenta 2 veces por defecto y multiplicaba
+    # el timeout (45s x3 = 135s medidos en Render)
+    client = OpenAI(base_url=base_url, api_key=api_key,
+                    timeout=float(os.getenv("LLM_TIMEOUT", "25")), max_retries=0)
     extra: dict = {}
     if "nvidia" in base_url:
         # nemotron razona en voz alta si no lo apagas explícitamente

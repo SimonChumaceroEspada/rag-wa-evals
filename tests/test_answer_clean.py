@@ -162,3 +162,63 @@ def test_chat_disables_nim_reasoning(monkeypatch):
     monkeypatch.setattr(openai, "OpenAI", Fake)
     assert m._chat("s", "u", "https://integrate.api.nvidia.com/v1", "k", "m", 400) == "ok"
     assert seen["extra_body"]["reasoning"]["effort"] == "none", "NIM sin effort=none divaga y cuesta 16-60s"
+
+
+def test_chat_client_has_no_silent_retries(monkeypatch):
+    import openai
+
+    import api.main as m
+
+    seen = {}
+
+    class Fake:
+        def __init__(self, **kw):
+            seen.update(kw)
+            self.chat = self
+            self.completions = self
+
+        def create(self, **kw):
+            class Msg:
+                content = "ok"
+
+            class Ch:
+                message = Msg()
+
+            class R:
+                choices = [Ch()]
+
+            return R()
+
+    monkeypatch.setattr(openai, "OpenAI", Fake)
+    m._chat("s", "u", "https://integrate.api.nvidia.com/v1", "k", "m", 400)
+    assert seen.get("max_retries", 2) == 0, f"reintentos={seen.get('max_retries')} multiplican el timeout"
+    assert seen.get("timeout", 999) <= 30, f"timeout de generación {seen.get('timeout')}s sin acotar"
+
+
+def test_embed_client_timeout_is_bounded(monkeypatch):
+    import openai
+
+    import src.embed as e
+
+    monkeypatch.setenv("OPENAI_API_KEY", "")
+    monkeypatch.setenv("NVIDIA_API_KEY", "nvapi_test")
+    seen = {}
+
+    class Fake:
+        def __init__(self, **kw):
+            seen.update(kw)
+            self.embeddings = self
+
+        def create(self, **kw):
+            class Item:
+                embedding = [0.0] * 3
+
+            class R:
+                data = [Item()]
+
+            return R()
+
+    monkeypatch.setattr(openai, "OpenAI", Fake)
+    e.embed(["hola"])
+    assert seen.get("timeout", 999) <= 60, f"timeout de embed {seen.get('timeout')}s sin acotar"
+    assert seen.get("max_retries", 2) <= 1, "embed reintentando en silencio"

@@ -33,18 +33,18 @@ def _dummy_vector(text: str, dim: int = DUMMY_DIM) -> list[float]:
 
 def embed(texts: list[str]) -> list[list[float]]:
     """Embed texts. Acepta lista (batching: 1 request por lote, no por chunk)."""
+    from openai import OpenAI
+
+    # timeout corto + 1 reintento: sin acotar, el cliente espera 120s x3
+    tw = float(os.getenv("EMBED_TIMEOUT", "30"))
     p = provider()
     if p == "openai":
-        from openai import OpenAI
-
-        client = OpenAI(timeout=120)
+        client = OpenAI(timeout=tw, max_retries=1)
         model = os.getenv("EMBED_MODEL", "text-embedding-3-small")
         resp = client.embeddings.create(input=texts, model=model)
         return [d.embedding for d in resp.data]
     if p == "nim":
-        from openai import OpenAI
-
-        client = OpenAI(base_url=NIM_URL, api_key=os.getenv("NVIDIA_API_KEY"), timeout=120)
+        client = OpenAI(base_url=NIM_URL, api_key=os.getenv("NVIDIA_API_KEY"), timeout=tw, max_retries=1)
         resp = client.embeddings.create(input=texts, model=NIM_EMBED_MODEL)
         return [d.embedding for d in resp.data]
     return [_dummy_vector(t) for t in texts]
