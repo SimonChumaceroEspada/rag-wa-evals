@@ -1,0 +1,25 @@
+name: keep-alive
+
+# Render free duerme el servicio tras 15 min sin tráfico (~50s de despertar,
+# medido hasta 127s la primera petición). Este ping cada 10 min lo mantiene
+# despierto. Consumo: ~1200 min/mes de los 2000 gratis de Actions.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Despierta Render
+        run: |
+          for i in 1 2 3; do
+            code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 60 \
+              https://rag-wa-evals.onrender.com/openapi.json || echo 000)
+            echo "intento $i -> HTTP $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 20
+          done
+          echo "Render no responde"
+          exit 1
