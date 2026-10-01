@@ -117,8 +117,8 @@ chain, scored by a deterministic scorer:
 
 | metric | score | n | method | date |
 |---|---|---|---|---|
-| faithfulness | **0.933** (was 0.733 at the start of the day) | 30 | live answers, heuristic scorer | 2026-10-01 |
-| context_precision | **0.823** (was 0.731 at the start of the day) | 30 | live answers, heuristic scorer | 2026-10-01 |
+| faithfulness | **0.900** (was 0.733 at the start of the day) | 30 | live answers, heuristic scorer | 2026-10-01 |
+| context_precision | **0.798** (was 0.731 at the start of the day) | 30 | live answers, heuristic scorer | 2026-10-01 |
 | judge faithfulness | **0.633** (preliminary — verdicts vary run to run, see below) | 30 | live answers, LLM judge (`gpt-oss-20b`, quote verified in code) | 2026-10-01 |
 | faithfulness (EN) | **1.000** | 30 | live answers, heuristic scorer (`--lang en`, `qa_en.jsonl`) | 2026-10-01 |
 | context_precision (EN) | **0.953** | 30 | live answers, heuristic scorer (`--lang en`, `qa_en.jsonl`) | 2026-10-01 |

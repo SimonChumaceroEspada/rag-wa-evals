@@ -213,7 +213,7 @@ def main():
             ctx = "\n".join(
                 f"[{i + 1}] {s['text']}" for i, s in enumerate(res["sources"])
             )
-            if live and row["q"] not in cache:
+            if live and (row["q"] not in cache or args.fresh):
                 cache[row["q"]] = {"answer": res["answer"], "sources": res["sources"]}
                 cache_p.write_text(json.dumps(cache), encoding="utf-8")
         hay = norm(res["answer"] + " " + ctx)
