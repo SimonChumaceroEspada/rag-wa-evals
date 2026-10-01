@@ -9,7 +9,7 @@ import {
 import { Thread } from "@/components/thread.aui";
 import { Button } from "@/components/ui/button";
 import { Sidebar, SidebarToggle } from "@/components/sidebar";
-import { UiContext, type Lang, type UiValue } from "@/lib/ui";
+import { UiContext, useUi, type Lang, type UiValue } from "@/lib/ui";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://rag-wa-evals.onrender.com";
 let currentLang = "en";
@@ -51,33 +51,58 @@ const RagAdapter: ChatModelAdapter = {
 
 declare global { var __rag: { start: number; done: boolean } | undefined }
 
-const STAGES = ["buscando en 52 PDFs…", "fusionando denso + BM25…", "reordenando top-20…", "redactando con citas…"];
+const WAIT = {
+  search: { es: "Buscando en tus documentos", en: "Searching your documents" },
+  model: { es: "El modelo está tardando en responder", en: "The model is taking longer than usual" },
+  wake: { es: "Despertando el servidor gratuito (~1 min)", en: "Waking the free server (~1 min)" },
+} as const;
 
 function RunStatus() {
+  const { lang } = useUi();
   const [, tick] = useState(0);
-  const [num, setNum] = useState(7);
-  const [msg, setMsg] = useState("Adivina 1-10 mientras esperas:");
-  const [tries, setTries] = useState(0);
+  const [awake, setAwake] = useState<boolean | null>(null);
+  const run = typeof window !== "undefined" ? window.__rag : undefined;
+  const active = !!run && !run.done;
+
   useEffect(() => {
     const id = setInterval(() => tick((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, []);
-  const run = typeof window !== "undefined" ? window.__rag : undefined;
+
+  // Mientras espera, mide el servidor: si no responde el ping, está dormido;
+  // si responde y aun así tarda, el cuello de botella es el modelo.
+  useEffect(() => {
+    if (!active) {
+      setAwake(null);
+      return;
+    }
+    let alive = true;
+    const ping = async () => {
+      try {
+        const t0 = Date.now();
+        await fetch(`${API}/openapi.json`, { cache: "no-store" });
+        if (alive) setAwake(Date.now() - t0 < 4000);
+      } catch {
+        if (alive) setAwake(false);
+      }
+    };
+    void ping();
+    const id = setInterval(() => void ping(), 3000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, [active]);
+
   if (!run || run.done) return null;
   const s = Math.floor((Date.now() - run.start) / 1000);
+  const key = awake === false ? "wake" : awake === true && s > 10 ? "model" : "search";
   return (
-    <div className="rounded-lg border p-3 text-sm">
-      <p>⏳ {STAGES[Math.min(Math.floor(s / 15), STAGES.length - 1)]} ({s}s)</p>
-      <p className="mt-2">
-        {msg}{" "}
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-          <button key={n} className="mx-0.5 rounded border px-1" onClick={() => {
-            setTries((t) => t + 1);
-            setMsg(n === num ? `¡Sí! era el ${num} en ${tries + 1} intentos 🎉` : n < num ? "más alto…" : "más bajo…");
-            if (n === num) { setNum(1 + Math.floor(Math.random() * 10)); setTries(0); }
-          }}>{n}</button>
-        ))}
-      </p>
+    <div className="flex items-center gap-2 rounded-lg border p-3 text-sm">
+      <span className="inline-block h-2 w-2 shrink-0 animate-pulse rounded-full bg-primary" />
+      <span>
+        {WAIT[key][lang]} <span className="text-muted-foreground">({s}s)</span>
+      </span>
     </div>
   );
 }
