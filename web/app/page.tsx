@@ -112,20 +112,26 @@ export default function Home() {
   const [sidebar, setSidebar] = useState(true);
   const [wake, setWake] = useState(false);
   const [server, setServer] = useState<"checking" | "awake" | "sleepy">("checking");
-  // Despertar al abrir: el plan gratis duerme el servicio y el cron de Actions
-  // llega con horas de demora; este ping lo despierta mientras el usuario lee.
+  // Despertar al abrir + mantener caliente mientras la pestaña viva:
+  // el plan gratis duerme a los 15 min y el cron de Actions llega tarde
+  // (medido: 5 corridas en 20 h), así que la web se pega cada 5 min.
   useEffect(() => {
     let alive = true;
-    const t0 = Date.now();
-    fetch(`${API}/openapi.json`, { cache: "no-store" })
-      .then((r) => {
-        if (alive) setServer(r.ok && Date.now() - t0 < 8000 ? "awake" : "sleepy");
-      })
-      .catch(() => {
-        if (alive) setServer("sleepy");
-      });
+    const check = () => {
+      const t0 = Date.now();
+      fetch(`${API}/openapi.json`, { cache: "no-store" })
+        .then((r) => {
+          if (alive) setServer(r.ok && Date.now() - t0 < 8000 ? "awake" : "sleepy");
+        })
+        .catch(() => {
+          if (alive) setServer("sleepy");
+        });
+    };
+    check();
+    const iv = setInterval(check, 5 * 60_000);
     return () => {
       alive = false;
+      clearInterval(iv);
     };
   }, []);
   const runtime = useLocalRuntime(RagAdapter);

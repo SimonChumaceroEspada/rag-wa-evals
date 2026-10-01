@@ -11,6 +11,10 @@ services:
         sync: false
       - key: NVIDIA_API_KEY
         sync: false
+      # Keep-alive interno: hilo en api/keepalive.py pega a esta URL cada 10 min
+      # para que el plan free no suspenda el servicio (15 min sin tráfico).
+      - key: KEEPALIVE_URL
+        value: https://rag-wa-evals.onrender.com
       - key: NIM_CHAT_MODEL
         value: nvidia/nemotron-3.5-lightning-30b-a3b
       - key: NIM_EMBED_MODEL

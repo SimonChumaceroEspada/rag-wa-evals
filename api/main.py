@@ -11,8 +11,25 @@ from fastapi.staticfiles import StaticFiles
 from src.embed import embed
 from src.ingest import get_client
 
+from api.keepalive import start_keepalive
+
 load_dotenv()
 app = FastAPI(title="rag-wa-evals")
+
+
+def start_services() -> None:
+    """Arranca el keep-alive si KEEPALIVE_URL está definido (Render)."""
+    url = os.getenv("KEEPALIVE_URL", "").strip()
+    interval = float(os.getenv("KEEPALIVE_INTERVAL", "600"))
+    if start_keepalive(url, interval=interval):
+        print(f"api: keepalive activo cada {interval:.0f}s -> {url}")
+
+
+@app.on_event("startup")
+def _startup() -> None:
+    start_services()
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.getenv("CORS_ORIGINS", "*").split(","),
