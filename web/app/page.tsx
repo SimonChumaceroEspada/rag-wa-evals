@@ -9,6 +9,7 @@ import {
 import { Thread } from "@/components/thread.aui";
 import { Button } from "@/components/ui/button";
 import { Sidebar, SidebarToggle } from "@/components/sidebar";
+import { Loader2 } from "lucide-react";
 import { UiContext, useUi, type Lang, type UiValue } from "@/lib/ui";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://rag-wa-evals.onrender.com";
@@ -99,7 +100,7 @@ function RunStatus() {
   const key = awake === false ? "wake" : awake === true && s > 10 ? "model" : "search";
   return (
     <div className="flex items-center gap-2 rounded-lg border p-3 text-sm">
-      <span className="inline-block h-2 w-2 shrink-0 animate-pulse rounded-full bg-primary" />
+      <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
       <span>
         {WAIT[key][lang]} <span className="text-muted-foreground">({s}s)</span>
       </span>
@@ -110,6 +111,23 @@ export default function Home() {
   const [lang, setLang] = useState<Lang>("en");
   const [sidebar, setSidebar] = useState(true);
   const [wake, setWake] = useState(false);
+  const [server, setServer] = useState<"checking" | "awake" | "sleepy">("checking");
+  // Despertar al abrir: el plan gratis duerme el servicio y el cron de Actions
+  // llega con horas de demora; este ping lo despierta mientras el usuario lee.
+  useEffect(() => {
+    let alive = true;
+    const t0 = Date.now();
+    fetch(`${API}/openapi.json`, { cache: "no-store" })
+      .then((r) => {
+        if (alive) setServer(r.ok && Date.now() - t0 < 8000 ? "awake" : "sleepy");
+      })
+      .catch(() => {
+        if (alive) setServer("sleepy");
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
   const runtime = useLocalRuntime(RagAdapter);
   const ui: UiValue = {
     lang,
@@ -140,14 +158,30 @@ export default function Home() {
             </div>
           </div>
           <p className="shrink-0 px-4 text-sm text-muted-foreground md:px-10">
-            Demo RAG bilingüe (AcmeTech sintético). Gratis: ~1 min la primera vez.
+            {lang === "es"
+              ? "Demo RAG bilingüe (AcmeTech sintético). Gratis: ~1 min la primera vez."
+              : "Bilingual RAG demo (synthetic AcmeTech). Free tier: ~1 min the first time."}
+            {server !== "awake" && (
+              <span className="text-amber-600">
+                {" "}
+                {server === "sleepy"
+                  ? lang === "es"
+                    ? "· despertando el servidor, podés preguntar igual"
+                    : "· waking the server, feel free to ask anyway"
+                  : lang === "es"
+                    ? "· comprobando servidor…"
+                    : "· checking server…"}
+              </span>
+            )}
             <button className="ml-2 underline" onClick={() => setWake((w) => !w)}>
-              {wake ? "ocultar" : "¿por qué tarda?"}
+              {wake ? (lang === "es" ? "ocultar" : "hide") : lang === "es" ? "¿por qué tarda?" : "why so slow?"}
             </button>
           </p>
           {wake && (
-            <p className="text-sm text-amber-600">
-              El servidor gratuito duerme sin tráfico; la primera pregunta lo despierta (~1 min). Las siguientes vuelan.
+            <p className="shrink-0 px-4 text-sm text-amber-600 md:px-10">
+              {lang === "es"
+                ? "El servidor gratuito duerme sin tráfico; la primera pregunta lo despierta (~1 min). Las siguientes vuelan."
+                : "The free server sleeps without traffic; the first question wakes it (~1 min). The rest fly."}
             </p>
           )}
           <AssistantRuntimeProvider runtime={runtime}>

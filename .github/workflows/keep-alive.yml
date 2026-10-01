@@ -1,8 +1,10 @@
 name: keep-alive
 
 # Render free duerme el servicio tras 15 min sin tráfico (~50s de despertar,
-# medido hasta 127s la primera petición). Este ping cada 10 min lo mantiene
-# despierto. Consumo: ~1200 min/mes de los 2000 gratis de Actions.
+# medido hasta 127s la primera petición). Este ping INTENTA mantenerlo despierto,
+# pero GitHub demora los cron programados por horas (observado 2026-10-01:
+# huecos de 5-6h entre corridas). La web además se despierta sola al abrirse
+# (ping en page.tsx). Para un keep-awake real usar UptimeRobot/Better Stack.
 on:
   schedule:
     - cron: "*/10 * * * *"
