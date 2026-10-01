@@ -79,7 +79,7 @@ def offline_ask(q: str) -> dict:
     }
 
 
-def judge_faithfulness(q: str, ctx: str, answer: str, base_url: str = "", api_key: str = "", model: str = "") -> dict:
+def judge_faithfulness(q: str, ctx: str, answer: str, base_url: str = "", api_key: str = "", model: str = "", temperature: float = 0.0) -> dict:
     """Juez LLM: ¿cada afirmación de `answer` sale de `ctx`? Solo JSON.
     Defaults: NIM direct (NIM_CHAT_MODEL). Pasar base_url/api_key/model para router/otros.
     """
@@ -119,6 +119,7 @@ def judge_faithfulness(q: str, ctx: str, answer: str, base_url: str = "", api_ke
             model=model,
             messages=messages,
             max_tokens=600,
+            temperature=temperature,
         )
         return resp.choices[0].message.content
 

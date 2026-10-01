@@ -119,7 +119,7 @@ chain, scored by a deterministic scorer:
 |---|---|---|---|---|
 | faithfulness | **0.933** (was 0.733 at the start of the day) | 30 | live answers, heuristic scorer | 2026-10-01 |
 | context_precision | **0.823** (was 0.731 at the start of the day) | 30 | live answers, heuristic scorer | 2026-10-01 |
-| judge faithfulness | **0.633** | 30 | live answers, LLM judge (`gpt-oss-20b`, quote verified in code) | 2026-10-01 |
+| judge faithfulness | **0.633** (preliminary — verdicts vary run to run, see below) | 30 | live answers, LLM judge (`gpt-oss-20b`, quote verified in code) | 2026-10-01 |
 
 The "was" column is the morning baseline. The day moved these numbers: the rerank scorer now
 actually runs (it used to fail on every request and hand back the raw RRF order), the answer
@@ -137,6 +137,10 @@ with its supporting quote verified in code) is stricter — **0.633** — and th
 honest signal: answers contain the right fact *plus* embellished extras the context does
 not literally support (e.g. a "4h" response time, "5–30%" credits). That gap is the next
 thing to close: tighter answer prompt, then re-run.
+Honest caveat, measured 2026-10-01: single-call LLM verdicts are unstable — the same
+judge flips verdicts on identical inputs across runs (0/6 agreement on a 6-case retry,
+even at temperature 0 and via two providers). Until the judge votes (best-of-3) the
+heuristic stays the stable headline metric; the judge is directional signal only.
 
 **Golden rule:** no prompt or model change without re-running the evals.
 
