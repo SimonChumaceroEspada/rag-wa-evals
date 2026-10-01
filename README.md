@@ -6,7 +6,10 @@ two Qdrant collections, and every answer cites the sources it used (`[1][2]`).
 **Live demo:** <https://rag-wa-evals-web.vercel.app/> — toggle **EN / ES** in the UI.
 **API:** `https://rag-wa-evals.onrender.com/ask?q=What%20is%20the%20leave%20policy&lang=en`
 
-![System architecture](docs/architecture.svg)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/architecture-dark.svg" />
+  <img alt="System architecture: ingest → Qdrant → /ask → answer, gated by evals" src="docs/architecture-light.svg" width="990" />
+</picture>
 
 ---
 
@@ -66,7 +69,7 @@ Actions cron (`.github/workflows/keep-alive.yml`) is only a third layer — meas
             gemini ─► nim ─► router ─► extractive (no key needed)
 ```
 
-![Request lifecycle: retrieve → rerank → answer with fallback](docs/request-sequence.svg)
+<img alt="Request lifecycle drawing itself: retrieve → rerank → answer with provider fallback" src="docs/request-sequence.gif" width="620" />
 
 | file | role |
 |---|---|
@@ -153,7 +156,10 @@ heuristic stays the stable headline metric; the judge is directional signal only
 
 **Golden rule:** no prompt or model change without re-running the evals.
 
-![Eval gate](docs/eval-gate.svg)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/eval-gate-dark.svg" />
+  <img alt="Eval gate: change → tests → evals → merge or blocked" src="docs/eval-gate-light.svg" width="990" />
+</picture>
 
 ## Corpus: AcmeTech Solutions Inc. (fictional)
 
