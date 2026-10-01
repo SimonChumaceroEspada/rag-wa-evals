@@ -120,10 +120,10 @@ export default function Home() {
   };
   return (
     <UiContext.Provider value={ui}>
-      <main className="flex h-dvh w-full">
+      <main className="flex h-dvh w-full overflow-hidden">
         <Sidebar />
         <div className="flex min-h-0 min-w-0 flex-1 flex-col px-4 md:px-10">
-          <div className="flex items-center gap-2 py-2">
+          <div className="flex shrink-0 items-center gap-2 py-2">
             <SidebarToggle />
             <h1 className="text-xl font-bold">rag-wa-evals</h1>
             <div className="ml-auto flex gap-1">
@@ -139,7 +139,7 @@ export default function Home() {
               ))}
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="shrink-0 text-sm text-muted-foreground">
             Demo RAG bilingüe (AcmeTech sintético). Gratis: ~1 min la primera vez.
             <button className="ml-2 underline" onClick={() => setWake((w) => !w)}>
               {wake ? "ocultar" : "¿por qué tarda?"}
@@ -151,7 +151,7 @@ export default function Home() {
             </p>
           )}
           <AssistantRuntimeProvider runtime={runtime}>
-            <div className="mx-auto w-full max-w-3xl pt-4">
+            <div className="mx-auto w-full max-w-3xl shrink-0 pt-4">
               <RunStatus />
             </div>
             <Thread />

@@ -189,7 +189,7 @@ const ThreadRoot: FC<{ isEmpty: boolean; autoFocus: boolean }> = ({
 
   return (
     <ThreadPrimitive.Root
-      className="aui-root aui-thread-root bg-background @container flex h-full flex-col"
+      className="aui-root aui-thread-root bg-background @container flex min-h-0 flex-1 flex-col"
       style={{
         ["--thread-max-width" as string]: "48rem",
         ["--composer-bg" as string]:
