@@ -42,9 +42,11 @@ reading code:
    order after 10–11 s. You paid for a rerank that never ran, which is why an unrelated
    fixture document ranked first.
 
-The service runs on Render's free tier, which sleeps after 15 minutes idle. A GitHub Actions
-cron (`.github/workflows/keep-alive.yml`) pings it every 10 minutes so the first visitor
-never pays the ~1 min cold start.
+The service runs on Render's free tier, which sleeps after 15 minutes idle. It stays
+warm by itself: an internal thread (`api/keepalive.py`) pings its own public URL every
+10 minutes, and the web UI pings on page load plus every 5 minutes while open. The GitHub
+Actions cron (`.github/workflows/keep-alive.yml`) is only a third layer — measured
+2026-10-01, GitHub runs scheduled workflows ~5 times a day, not every 10 minutes.
 
 ## How it works
 
@@ -70,7 +72,7 @@ never pays the ~1 min cold start.
 | `src/hybrid.py` | dense (Qdrant) + BM25 fused with Reciprocal Rank Fusion |
 | `src/rerank.py` | LLM listwise rerank of the top-20 → top-5, degrades to RRF order |
 | `api/main.py` | FastAPI: retrieval, provider chain, per-stage timing, answer cache |
-| `evals/` | 30-question set + scorer (`run_ragas.py`) |
+| `evals/` | ES+EN question sets, heuristic scorer + LLM judge (`run_ragas.py --lang es\|en [--judge]`) |
 
 ## Quickstart
 
@@ -84,7 +86,7 @@ python -m src.ingest --lang en
 python -m src.ingest --lang es
 
 uvicorn api.main:app --reload --port 8000          # GET /ask?q=...&lang=en
-pytest -q                                          # 42 tests
+pytest -q                                          # 56 tests
 python evals/run_ragas.py                          # writes evals/baseline.json
 ```
 
@@ -112,7 +114,8 @@ endpoint still answers through the extractive fallback, so the pipe is testable 
 
 ## Evaluations
 
-30 Spanish questions over the AcmeTech subset (`evals/qa_es.jsonl`), answered by the deployed
+60 questions (30 Spanish + 30 English mirror) over the AcmeTech subset
+(`evals/qa_es.jsonl`, `evals/qa_en.jsonl`), answered by the deployed
 chain, scored by a deterministic scorer:
 
 | metric | score | n | method | date |
@@ -150,8 +153,7 @@ heuristic stays the stable headline metric; the judge is directional signal only
 
 AcmeTech is a fictional company from the public dataset
 [maruf6890/acmetech-enterprise-rag-dataset](https://github.com/maruf6890/acmetech-enterprise-rag-dataset)
-— 26 PDFs across 7 departments, plus a manifest and a 200-question English test set (the
-manifest/test set is reused for EN).
+— 26 PDFs across 7 departments, plus a manifest.
 
 > **Permission:** granted verbally by the author on 2026-09-24 (arranged by Simón), with
 > attribution and link as given above. The original PDFs are **not committed** (heavy
@@ -171,13 +173,13 @@ api/      FastAPI service (+ legacy static UI)
 src/      chunk · embed · ingest · hybrid · rerank
 data/     en/ es/ corpora (PDFs fetched, not committed)
 evals/    question sets, scorer, baselines
-tests/    pytest suite (42)
+tests/    pytest suite (56)
 web/      Next.js frontend on Vercel
 ```
 
 ## Roadmap
 
-**S1 (this repo):** bilingual ingest, `/ask` with citations, per-stage timing, eval baseline.
+**S1 (this repo):** bilingual ingest, `/ask` with citations, per-stage timing, ES+EN eval baselines, self-keep-alive.
 **Next:** WhatsApp + voice, DeepEval + Langfuse.
 
 ---
@@ -185,7 +187,7 @@ web/      Next.js frontend on Vercel
 ## Español
 
 RAG bilingüe sobre tus documentos: preguntas en `GET /ask?q=...&lang=en|es` y respuestas que
-**citando** tus fuentes (`[1][2]` + `sources[]`). Una sola ruta de código, dos corpus
+**citan** tus fuentes (`[1][2]` + `sources[]`). Una sola ruta de código, dos corpus
 (`data/en`, `data/es`), dos colecciones Qdrant (`docs_en`, `docs_es`). El idioma por defecto
 es inglés; sin claves de proveedor sigue respondiendo con el fallback extractivo.
 
