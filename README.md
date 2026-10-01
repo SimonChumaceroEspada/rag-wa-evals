@@ -6,6 +6,31 @@ two Qdrant collections, and every answer cites the sources it used (`[1][2]`).
 **Live demo:** <https://rag-wa-evals-web.vercel.app/> — toggle **EN / ES** in the UI.
 **API:** `https://rag-wa-evals.onrender.com/ask?q=What%20is%20the%20leave%20policy&lang=en`
 
+```mermaid
+flowchart LR
+    subgraph INGEST["ingest (offline)"]
+        PDFs["26 PDFs<br/>data/en + data/es"]
+        CHUNK["chunk 600w"]
+        EMB1["embed<br/>nemotron-embed"]
+        QDRANT[("Qdrant<br/>docs_en / docs_es")]
+        PDFs --> CHUNK --> EMB1 --> QDRANT
+    end
+    subgraph SERVE["serve: GET /ask"]
+        Q["q + lang"] --> EMB2["embed"]
+        EMB2 --> RET["dense + BM25 → RRF"]
+        RET --> QDRANT
+        QDRANT --> RERANK["LLM rerank 20→5"]
+        RERANK --> CHAIN["gemini → nim → router → extractive"]
+        CHAIN --> ANS["answer [1][2] + timing"]
+    end
+    subgraph EVALS["evals (gate)"]
+        QA["qa_es + qa_en"]
+        SCORER["run_ragas.py"]
+        QA --> SCORER
+    end
+    SCORER -. "blocks merge" .-> CHAIN
+```
+
 ---
 
 ## Why this exists
@@ -148,6 +173,15 @@ even at temperature 0 and via two providers). Until the judge votes (best-of-3) 
 heuristic stays the stable headline metric; the judge is directional signal only.
 
 **Golden rule:** no prompt or model change without re-running the evals.
+
+```mermaid
+flowchart LR
+    CHANGE["prompt/model change"] --> TESTS["pytest (56)"]
+    TESTS --> EVALS["run_ragas.py --lang es|en"]
+    EVALS --> GATE{"scores ≥ baseline?"}
+    GATE -->|yes| MERGE["merge + push"]
+    GATE -->|no| BLOCK["blocked, investigate"]
+```
 
 ## Corpus: AcmeTech Solutions Inc. (fictional)
 
