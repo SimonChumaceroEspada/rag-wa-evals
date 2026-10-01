@@ -22,6 +22,12 @@ QA = pathlib.Path("evals/qa_es.jsonl")
 OUT = pathlib.Path("evals/baseline.json")
 
 
+def qa_path_for(lang: str) -> pathlib.Path:
+    if lang not in ("es", "en"):
+        raise ValueError(f"lang debe ser es|en, llegó {lang!r}")
+    return pathlib.Path(f"evals/qa_{lang}.jsonl")
+
+
 def norm(s: str) -> str:
     s = unicodedata.normalize("NFD", s.lower())
     s = "".join(c for c in s if unicodedata.category(c) != "Mn")
@@ -43,9 +49,9 @@ def qdrant_up() -> bool:
         return False
 
 
-def live_ask(client, q: str) -> dict | None:
+def live_ask(client, q: str, lang: str = "es") -> dict | None:
     try:
-        r = client.get("/ask", params={"q": q, "lang": "es"})
+        r = client.get("/ask", params={"q": q, "lang": lang})
         if r.status_code != 200:
             return None
         d = r.json()
@@ -55,11 +61,11 @@ def live_ask(client, q: str) -> dict | None:
         return None
 
 
-def offline_ask(q: str) -> dict:
+def offline_ask(q: str, lang: str = "es") -> dict:
     from src.ingest import collect_lang_files, read_doc_text
 
     docs = []
-    for f in collect_lang_files("es"):
+    for f in collect_lang_files(lang):
         t = read_doc_text(f)
         if t.strip():
             docs.append({"text": t, "source": f.name})
@@ -169,7 +175,9 @@ def main():
     ap.add_argument("--cache", default=".hermes/cache_ask.json", help="caché respuestas")
     ap.add_argument("--pace", type=float, default=6.0, help="pausa entre llamadas juez")
     ap.add_argument("--fresh", action="store_true", help="ignora caché (re-mide todo)")
+    ap.add_argument("--lang", default="es", help="idioma del set (es|en)")
     args = ap.parse_args()
+    QA = qa_path_for(args.lang)
     rows = [json.loads(l) for l in QA.read_text(encoding="utf-8").splitlines() if l.strip()]
     if args.n:
         rows = rows[: args.n]
@@ -195,11 +203,11 @@ def main():
         if live and row["q"] in cache and not args.fresh:
             res = {"answer": cache[row["q"]]["answer"], "sources": cache[row["q"]]["sources"]}
         else:
-            res = live_ask(client, row["q"]) if live else None
+            res = live_ask(client, row["q"], lang=args.lang) if live else None
         method_live = res is not None
         live_ok += method_live
         if res is None:
-            res = offline_ask(row["q"])
+            res = offline_ask(row["q"], lang=args.lang)
             ctx = res["_context"]
         else:
             ctx = "\n".join(

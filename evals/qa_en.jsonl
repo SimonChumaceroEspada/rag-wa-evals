@@ -1,0 +1,30 @@
+{"q": "What monthly uptime does AcmeTech guarantee to Enterprise customers?", "expected": "99.9% monthly uptime", "source": "SLA.pdf"}
+{"q": "What uptime does AcmeTech guarantee for the Growth tier?", "expected": "99.5%", "source": "SLA.pdf"}
+{"q": "Does the Starter tier include a formal uptime guarantee?", "expected": "does not include a formal uptime guarantee", "source": "SLA.pdf"}
+{"q": "How fast must Support respond to a P1 ticket from an Enterprise customer?", "expected": "P1: 1 hour", "source": "SLA.pdf"}
+{"q": "What is the P2 response time for Enterprise?", "expected": "P2: 4 hours", "source": "SLA.pdf"}
+{"q": "A Growth customer with a P1 \u2014 how fast do they get a response?", "expected": "P1: 4 hours", "source": "SLA.pdf"}
+{"q": "What resolution target does AcmeTech have for 90% of Enterprise P1s?", "expected": "within 4 hours", "source": "SLA.pdf"}
+{"q": "How large are the service credits for Enterprise if uptime fails?", "expected": "5% to 30%", "source": "SLA.pdf"}
+{"q": "Within what deadline must a service credit be requested?", "expected": "within 30 days", "source": "SLA.pdf"}
+{"q": "What does P1 (Urgent) mean in ticket classification?", "expected": "platform outage or complete inability to use core functionality", "source": "Support_SOP.pdf"}
+{"q": "What is a P2 (High) ticket?", "expected": "major feature broken with no workaround", "source": "Support_SOP.pdf"}
+{"q": "Which channels receive customer tickets?", "expected": "in-app chat, email (support@acmetech.com), and the Enterprise dedicated Slack channel", "source": "Support_SOP.pdf"}
+{"q": "How often must an open P1 or P2 ticket update the customer?", "expected": "at least once every 24 hours", "source": "Support_SOP.pdf"}
+{"q": "How long is new support agent certification?", "expected": "3 weeks", "source": "Support_SOP.pdf"}
+{"q": "What minimum score does agent certification require?", "expected": "85% or higher", "source": "Support_SOP.pdf"}
+{"q": "What percentage of tickets does the QA lead review each month?", "expected": "5%", "source": "Support_SOP.pdf"}
+{"q": "What is AcmeTech's global CSAT goal?", "expected": "90% or higher", "source": "Support_SOP.pdf"}
+{"q": "How fast does Knowledge Management update a reported article?", "expected": "within 5 business days", "source": "Support_SOP.pdf"}
+{"q": "What framework do agents use to calm frustrated customers?", "expected": "Acknowledge, Apologize, Act", "source": "Support_SOP.pdf"}
+{"q": "What does Tier 1 do in the escalation model?", "expected": "handles general troubleshooting and account questions", "source": "Escalation_Guide.pdf"}
+{"q": "When is a P1 escalated to Tier 2?", "expected": "after 2 hours", "source": "Escalation_Guide.pdf"}
+{"q": "When is a P2 escalated to Tier 2?", "expected": "8 hours", "source": "Escalation_Guide.pdf"}
+{"q": "What happens to a ticket with suspected data loss?", "expected": "escalated to Tier 3 and the Security team immediately", "source": "Escalation_Guide.pdf"}
+{"q": "What must every escalation handoff summary include?", "expected": "issue description, reproduction steps, customer impact, and prior troubleshooting attempted", "source": "Escalation_Guide.pdf"}
+{"q": "How many PTO days per year do full-time employees accrue?", "expected": "22 days of PTO per year", "source": "Leave_Policy.pdf"}
+{"q": "How many PTO days can be carried over to the next year?", "expected": "5 days", "source": "Leave_Policy.pdf"}
+{"q": "How many paid sick days are there per year?", "expected": "10 paid sick days", "source": "Leave_Policy.pdf"}
+{"q": "How many bereavement days for an immediate family member?", "expected": "up to 10 paid days of bereavement leave", "source": "Leave_Policy.pdf"}
+{"q": "After how many years do you qualify for sabbatical and how long is it?", "expected": "5 years of continuous tenure", "source": "Leave_Policy.pdf"}
+{"q": "Within how many business days must a manager approve a Workday request?", "expected": "within 2 business days", "source": "Leave_Policy.pdf"}
