@@ -150,6 +150,7 @@ def llm_answer(q: str, lang: str, context: str) -> str:
     sys = (
         f"Answer in {'Spanish' if lang == 'es' else 'English'}. "
         "Cite sources with [1][2]. Use only the context. "
+        "Never use LaTeX or math markup ($…$, \\ge, \\times): write plain Unicode (≥, ×, →). "
         "Your FIRST line must be the final answer itself: "
         "no preamble, no thinking process, no numbered steps, no bullet lists. "
         "At most 120 words."

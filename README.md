@@ -117,13 +117,14 @@ chain, scored by a deterministic scorer:
 
 | metric | score | n | method | date |
 |---|---|---|---|---|
-| faithfulness | **0.967** (was 0.733) | 30 | live answers, heuristic scorer | 2026-09-30 |
-| context_precision | **0.798** (was 0.731) | 30 | live answers, heuristic scorer | 2026-09-30 |
+| faithfulness | **0.933** (was 0.733 at the start of the day) | 30 | live answers, heuristic scorer | 2026-09-30 |
+| context_precision | **0.839** (was 0.731 at the start of the day) | 30 | live answers, heuristic scorer | 2026-09-30 |
 
-The "was" column is the previous run of the same script. Two changes moved these numbers:
-the rerank scorer now actually runs (it used to fail on every request and hand back the raw
-RRF order), and the answer now comes from `gemini-3.5-flash-lite` instead of the fallback
-model the exhausted Gemini quota was forcing. One question in 30 still falls back to NIM when
+The "was" column is the morning baseline. The day moved these numbers: the rerank scorer now
+actually runs (it used to fail on every request and hand back the raw RRF order), the answer
+now comes from `gemini-3.5-flash-lite` instead of the fallback model the exhausted Gemini
+quota was forcing, teaching fixtures left the index, and the prompt bans LaTeX the UI cannot
+render. One question in 30 still falls back to NIM when
 Gemini hits its rate limit — the chain logs it rather than hiding it.
 
 - **faithfulness** — the expected fact appears in the answer (substring match, 0/1).

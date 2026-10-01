@@ -234,3 +234,18 @@ def test_llm_candidates_puts_gemini_first(monkeypatch):
     names = [n for n, _b, _k, _md in m.llm_candidates()]
     assert names[0] == "gemini", f"orden {names}: gemini-2.5-flash responde en ~2s y NIM cuelga"
     assert names[1:] == ["nim", "router"]
+
+
+def test_system_prompt_bans_latex(monkeypatch):
+    import api.main as m
+
+    for k in ("GROQ_API_KEY", "GEMINI_API_KEY", "OPENAI_API_KEY", "FREELLMAPI_API_KEY"):
+        monkeypatch.setenv(k, "")
+    monkeypatch.setenv("NVIDIA_API_KEY", "nvapi_test")
+    seen = {}
+    monkeypatch.setattr(
+        m, "_chat",
+        lambda system, user, base, key, model, tokens: (seen.update(system=system), "Respuesta limpia [1].")[1],
+    )
+    m.llm_answer("coverage", "en", "[1] Backend requires 80% unit test coverage.")
+    assert "latex" in seen["system"].lower(), "el front no renderiza LaTeX: hay que prohibirlo en el prompt"
