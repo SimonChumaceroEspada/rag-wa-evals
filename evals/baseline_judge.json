@@ -1,10 +1,10 @@
 {
-  "faithfulness": 0.533,
-  "context_precision": 0.579,
+  "faithfulness": 0.933,
+  "context_precision": 0.823,
   "n": 30,
   "method": "live+judge",
   "live_answers": 30,
-  "date": "2026-09-25",
-  "judge_faithfulness": 0.172,
-  "judge_n": 29
+  "date": "2026-10-01",
+  "judge_faithfulness": 0.633,
+  "judge_n": 30
 }

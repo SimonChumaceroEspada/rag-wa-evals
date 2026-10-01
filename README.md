@@ -117,8 +117,9 @@ chain, scored by a deterministic scorer:
 
 | metric | score | n | method | date |
 |---|---|---|---|---|
-| faithfulness | **0.933** (was 0.733 at the start of the day) | 30 | live answers, heuristic scorer | 2026-09-30 |
-| context_precision | **0.839** (was 0.731 at the start of the day) | 30 | live answers, heuristic scorer | 2026-09-30 |
+| faithfulness | **0.933** (was 0.733 at the start of the day) | 30 | live answers, heuristic scorer | 2026-10-01 |
+| context_precision | **0.823** (was 0.731 at the start of the day) | 30 | live answers, heuristic scorer | 2026-10-01 |
+| judge faithfulness | **0.633** | 30 | live answers, LLM judge (`gpt-oss-20b`, quote verified in code) | 2026-10-01 |
 
 The "was" column is the morning baseline. The day moved these numbers: the rerank scorer now
 actually runs (it used to fail on every request and hand back the raw RRF order), the answer
@@ -130,9 +131,12 @@ Gemini hits its rate limit — the chain logs it rather than hiding it.
 - **faithfulness** — the expected fact appears in the answer (substring match, 0/1).
 - **context_precision** — reciprocal rank of the expected document among retrieved sources.
 
-These are a *plumbing* baseline, not a quality ceiling: the scorer measures recall and
-ranking, not reasoning. The next step is an LLM-as-judge (`run_ragas.py --judge`) so the
-number means something harder.
+These are a *plumbing* baseline, not a quality ceiling: the heuristic scorer measures
+recall and ranking, not reasoning. The LLM judge (`run_ragas.py --judge`, `gpt-oss-20b`
+with its supporting quote verified in code) is stricter — **0.633** — and the gap is
+honest signal: answers contain the right fact *plus* embellished extras the context does
+not literally support (e.g. a "4h" response time, "5–30%" credits). That gap is the next
+thing to close: tighter answer prompt, then re-run.
 
 **Golden rule:** no prompt or model change without re-running the evals.
 
@@ -168,7 +172,7 @@ web/      Next.js frontend on Vercel
 ## Roadmap
 
 **S1 (this repo):** bilingual ingest, `/ask` with citations, per-stage timing, eval baseline.
-**Next:** WhatsApp + voice, LLM-as-judge, DeepEval + Langfuse.
+**Next:** WhatsApp + voice, DeepEval + Langfuse.
 
 ---
 
@@ -179,7 +183,7 @@ RAG bilingüe sobre tus documentos: preguntas en `GET /ask?q=...&lang=en|es` y r
 (`data/en`, `data/es`), dos colecciones Qdrant (`docs_en`, `docs_es`). El idioma por defecto
 es inglés; sin claves de proveedor sigue respondiendo con el fallback extractivo.
 
-Medido el 2026-09-30: **3.5 s** por consulta (antes 62.6 s). Las métricas de la tabla son un
-baseline de *plomería* (recuerdo y ranking, no razonamiento); el juez LLM viene en el
-siguiente paso. Sin Docker/Qdrant, `/ask` y los tests que lo usan fallan por conexión, no por
+Medido el 2026-10-01: **3.5 s** por consulta (antes 62.6 s). Las métricas de la tabla son un
+baseline de *plomería* (recuerdo y ranking, no razonamiento); el juez LLM (`--judge`) ya
+corre y es más estricto (**0.633**): detecta adornos que el contexto no respalda. Sin Docker/Qdrant, `/ask` y los tests que lo usan fallan por conexión, no por
 código: arranca con `docker compose up -d qdrant`.
