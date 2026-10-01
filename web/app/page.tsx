@@ -110,7 +110,6 @@ function RunStatus() {
 export default function Home() {
   const [lang, setLang] = useState<Lang>("en");
   const [sidebar, setSidebar] = useState(true);
-  const [wake, setWake] = useState(false);
   const [server, setServer] = useState<"checking" | "awake" | "sleepy">("checking");
   // Despertar al abrir + mantener caliente mientras la pestaña viva:
   // el plan gratis duerme a los 15 min y el cron de Actions llega tarde
@@ -164,9 +163,7 @@ export default function Home() {
             </div>
           </div>
           <p className="shrink-0 px-4 text-sm text-muted-foreground md:px-10">
-            {lang === "es"
-              ? "Demo RAG bilingüe (AcmeTech sintético). Gratis: ~1 min la primera vez."
-              : "Bilingual RAG demo (synthetic AcmeTech). Free tier: ~1 min the first time."}
+            {lang === "es" ? "Demo RAG bilingüe (AcmeTech sintético)." : "Bilingual RAG demo (synthetic AcmeTech)."}
             {server !== "awake" && (
               <span className="text-amber-600">
                 {" "}
@@ -179,17 +176,7 @@ export default function Home() {
                     : "· checking server…"}
               </span>
             )}
-            <button className="ml-2 underline" onClick={() => setWake((w) => !w)}>
-              {wake ? (lang === "es" ? "ocultar" : "hide") : lang === "es" ? "¿por qué tarda?" : "why so slow?"}
-            </button>
           </p>
-          {wake && (
-            <p className="shrink-0 px-4 text-sm text-amber-600 md:px-10">
-              {lang === "es"
-                ? "El servidor gratuito duerme sin tráfico; la primera pregunta lo despierta (~1 min). Las siguientes vuelan."
-                : "The free server sleeps without traffic; the first question wakes it (~1 min). The rest fly."}
-            </p>
-          )}
           <AssistantRuntimeProvider runtime={runtime}>
             <div className="mx-auto w-full max-w-3xl shrink-0 px-4 pt-4">
               <RunStatus />
