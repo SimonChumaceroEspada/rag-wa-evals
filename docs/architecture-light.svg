@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 990 612" width="990" role="img" lang="en" data-preset="classic" data-theme="light"><style><![CDATA[
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 990 612" width="1400" role="img" lang="en" data-preset="classic" data-theme="light" data-embed="true"><style><![CDATA[
 /*
 JetBrains Mono variable WOFF2 subsets from Google Fonts service revision v24.
 These fixed bytes are shared by the viewer and its SVG/raster exports.
@@ -485,32 +485,32 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
     /* Gallery/embed mode keeps the generated artifact as the source of truth
        while presenting only its diagram surface inside a proof card. */
-    html[data-embed="true"] body {
+    [data-embed="true"] body {
       min-height: 0;
       padding: 0;
       overflow: hidden;
       background: var(--bg);
       background-image: none;
     }
-    html[data-embed="true"] .toolbar,
-    html[data-embed="true"] .header,
-    html[data-embed="true"] .cards,
-    html[data-embed="true"] .diagram-nav,
-    html[data-embed="true"] .overview-map,
-    html[data-embed="true"] .focus-chip,
-    html[data-embed="true"] .route-probe,
-    html[data-embed="true"] .semantic-lens,
-    html[data-embed="true"] .diagram-guide,
-    html[data-embed="true"] .node-finder,
-    html[data-embed="true"] .node-outline { display: none !important; }
-    html[data-embed="true"] .container { max-width: none; }
-    html[data-embed="true"] .diagram-container {
+    [data-embed="true"] .toolbar,
+    [data-embed="true"] .header,
+    [data-embed="true"] .cards,
+    [data-embed="true"] .diagram-nav,
+    [data-embed="true"] .overview-map,
+    [data-embed="true"] .focus-chip,
+    [data-embed="true"] .route-probe,
+    [data-embed="true"] .semantic-lens,
+    [data-embed="true"] .diagram-guide,
+    [data-embed="true"] .node-finder,
+    [data-embed="true"] .node-outline { display: none !important; }
+    [data-embed="true"] .container { max-width: none; }
+    [data-embed="true"] .diagram-container {
       padding: 0.5rem;
       border: 0;
       border-radius: 0;
       box-shadow: none;
     }
-    html[data-embed="true"] .diagram-container svg { min-width: 0; }
+    [data-embed="true"] .diagram-container svg { min-width: 0; }
 
     /* Presentation Stage is a viewer-only layer: it gives the live diagram
        the viewport while keeping guided views, theme, focus, and exports real.
@@ -776,7 +776,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       letter-spacing: 0.09em;
       pointer-events: none;
     }
-    html[data-embed="true"][data-preset="editorial"] .diagram-container::after { display: none; }
+    [data-embed="true"][data-preset="editorial"] .diagram-container::after { display: none; }
     html[data-motion-capable="true"][data-preset="signal-flow"][data-ambient-motion="running"] .diagram-container::before {
       content: "";
       position: absolute;
@@ -803,8 +803,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     html[data-motion-owner] .pulse-dot,
     html[data-motion-owner] .diagram-container::before,
     html[data-motion-owner] svg[data-animation="trace"] [data-animate],
-    html[data-embed="true"] .pulse-dot,
-    html[data-embed="true"] .diagram-container::before,
+    [data-embed="true"] .pulse-dot,
+    [data-embed="true"] .diagram-container::before,
     html[data-share-playback="true"] .pulse-dot,
     html[data-share-playback="true"] .diagram-container::before,
     html[data-document-hidden="true"] .pulse-dot,
@@ -812,14 +812,14 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     html[data-document-hidden="true"] svg[data-animation="trace"] [data-animate],
     html[data-motion="still"] svg[data-animation="trace"] [data-graph-role="automatic-crossover"]:has(> [data-animate="edge"]) > [data-graph-role="automatic-crossover-underlay"],
     html[data-motion-owner] svg[data-animation="trace"] [data-graph-role="automatic-crossover"]:has(> [data-animate="edge"]) > [data-graph-role="automatic-crossover-underlay"],
-    html[data-embed="true"] svg[data-animation="trace"] [data-graph-role="automatic-crossover"]:has(> [data-animate="edge"]) > [data-graph-role="automatic-crossover-underlay"],
+    [data-embed="true"] svg[data-animation="trace"] [data-graph-role="automatic-crossover"]:has(> [data-animate="edge"]) > [data-graph-role="automatic-crossover-underlay"],
     html[data-share-playback="true"] svg[data-animation="trace"] [data-graph-role="automatic-crossover"]:has(> [data-animate="edge"]) > [data-graph-role="automatic-crossover-underlay"],
     html[data-document-hidden="true"] svg[data-animation="trace"] [data-graph-role="automatic-crossover"]:has(> [data-animate="edge"]) > [data-graph-role="automatic-crossover-underlay"] {
       animation: none !important;
     }
     html[data-motion="still"] .diagram-container::before,
     html[data-motion-owner] .diagram-container::before,
-    html[data-embed="true"] .diagram-container::before,
+    [data-embed="true"] .diagram-container::before,
     html[data-share-playback="true"] .diagram-container::before {
       opacity: 0;
     }
@@ -3879,10 +3879,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       
       
       
-      html[data-embed="true"][data-share-playback="true"] .diagram-container {
+      [data-embed="true"][data-share-playback="true"] .diagram-container {
         padding-top: 4.25rem;
       }
-      html[data-embed="true"][data-share-moment="true"] .diagram-container {
+      [data-embed="true"][data-share-moment="true"] .diagram-container {
         padding-top: 4.25rem;
       }
       
@@ -3999,21 +3999,21 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         radial-gradient(circle at 1px 1px, var(--canvas-dot) 1px, transparent 1.4px) 0 0 / 20px 20px,
         var(--panel);
     }
-    html[data-preset="classic"] .diagram-container > svg .c-grid { stroke: transparent; }
+    svg[data-preset="classic"] .c-grid { stroke: transparent; }
     html[data-preset="classic"][data-theme="light"] .diagram-container > svg [data-node-id] > rect:not(.c-mask) {
       filter: drop-shadow(0 1px 1px rgba(17, 24, 39, 0.05)) drop-shadow(0 6px 12px rgba(17, 24, 39, 0.06));
     }
     html[data-preset="classic"][data-theme="dark"] .diagram-container > svg [data-node-id] > rect:not(.c-mask) {
       filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.35));
     }
-    html[data-preset="classic"] .diagram-container > svg [data-edge-from] {
+    svg[data-preset="classic"] [data-edge-from] {
       stroke-linecap: round;
       stroke-linejoin: round;
     }
-    html[data-preset="classic"] .diagram-container > svg .c-lane-wash { fill: color-mix(in srgb, var(--text) 2.6%, transparent); }
-    html[data-preset="classic"] .diagram-container > svg .c-lane-rule { stroke: var(--panel-border); opacity: 1; }
+    svg[data-preset="classic"] .c-lane-wash { fill: color-mix(in srgb, var(--text) 2.6%, transparent); }
+    svg[data-preset="classic"] .c-lane-rule { stroke: var(--panel-border); opacity: 1; }
     html[data-preset="classic"][data-theme="dark"] .diagram-container > svg .c-lane-rule { stroke: rgba(148, 163, 184, 0.16); }
-    html[data-preset="classic"] .diagram-container > svg [data-node-id] {
+    svg[data-preset="classic"] [data-node-id] {
       transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
     }
     html[data-preset="classic"]:not([data-motion="still"]) .diagram-container > svg [data-node-id]:hover {
@@ -4279,7 +4279,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       filter: none;
       opacity: 0.78;
     }
-    html[data-embed="true"] .semantic-lens-overlay { display: none; }
+    [data-embed="true"] .semantic-lens-overlay { display: none; }
     /* Automatic crossover masks are visual companions of their one semantic
        edge. Keep the mask free of data-edge-* identity so graph traversal and
        export still observe exactly one edge, then mirror reader emphasis from
@@ -4370,7 +4370,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     svg[data-route-picking] .relationship-hit-rail,
     svg[data-route-active] .relationship-hit-rail,
     svg[data-lens-active] .relationship-hit-rail { pointer-events: none; }
-    html[data-embed="true"] .relationship-hit-overlay { display: none; }
+    [data-embed="true"] .relationship-hit-overlay { display: none; }
     @media (hover: none), (pointer: coarse) {
       .relationship-hit-rail { stroke-width: 24; }
     }
@@ -4470,7 +4470,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     }
     svg[data-preset="blueprint"] .semantic-flow-token { filter: none; }
     svg[data-preset="editorial"] .semantic-flow-token { filter: none; }
-    html[data-embed="true"] .relationship-pulse-overlay { display: none; }
+    [data-embed="true"] .relationship-pulse-overlay { display: none; }
 
     /* Intent Trace is a temporary, pre-click exploration layer. Related
        topology stays readable while a short viewer-only signal runs over
@@ -4710,12 +4710,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     }
     /* Embedded proofs stay static so proof grids are calm instead of leaving
        ambient trace loops on. */
-    html[data-embed="true"] svg[data-animation="trace"] [data-animate],
+    [data-embed="true"] svg[data-animation="trace"] [data-animate],
     html[data-share-playback="true"] svg[data-animation="trace"] [data-animate] {
       animation: none !important;
       stroke-dashoffset: 0;
     }
-    html[data-embed="true"] svg[data-animation="trace"] [data-graph-role="automatic-crossover"]:has(> [data-animate="edge"]) > [data-graph-role="automatic-crossover-underlay"],
+    [data-embed="true"] svg[data-animation="trace"] [data-graph-role="automatic-crossover"]:has(> [data-animate="edge"]) > [data-graph-role="automatic-crossover-underlay"],
     html[data-share-playback="true"] svg[data-animation="trace"] [data-graph-role="automatic-crossover"]:has(> [data-animate="edge"]) > [data-graph-role="automatic-crossover-underlay"] {
       animation: none !important;
       stroke-dashoffset: 0;
@@ -4868,35 +4868,35 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <!-- Connection paths (before components for correct z-order) -->
         <g data-graph-role="automatic-crossover" style="--step:0">
           <path data-graph-role="automatic-crossover-underlay" d="M 180 330 L 240 330" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="visitor" data-edge-to="web" data-edge-label="HTTPS" data-edge-key="0" data-edge-id="visit" data-composition-points="180,330;240,330" data-composition-crossover="halo" data-composition-independent="true" d="M 180 330 L 240 330" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+          <path data-edge-from="visitor" data-edge-to="web" data-edge-label="HTTPS" data-edge-key="0" data-edge-id="visit" data-composition-points="180,330;240,330" data-composition-crossover="halo" data-composition-independent="true" d="M 180 330 L 240 330" class="a-emphasis" data-animate="edge" style="--step:0" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:1">
           <path data-graph-role="automatic-crossover-underlay" d="M 390 332 L 490 332" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="web" data-edge-to="api" data-edge-label="GET /ask?q&amp;lang" data-edge-key="1" data-edge-id="ask" data-composition-points="390,332;490,332" data-composition-crossover="halo" data-composition-independent="true" d="M 390 332 L 490 332" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-edge-from="web" data-edge-to="api" data-edge-label="GET /ask?q&amp;lang" data-edge-key="1" data-edge-id="ask" data-composition-points="390,332;490,332" data-composition-crossover="halo" data-composition-independent="true" d="M 390 332 L 490 332" class="a-default" data-animate="edge" style="--step:1" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:2">
           <path data-graph-role="automatic-crossover-underlay" d="M 570 364 L 570 460" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="api" data-edge-to="qdrant" data-edge-label="dense + BM25 retrieve" data-edge-key="2" data-edge-id="retrieve" data-composition-points="570,364;570,460" data-composition-crossover="halo" data-composition-independent="true" d="M 570 364 L 570 460" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-edge-from="api" data-edge-to="qdrant" data-edge-label="dense + BM25 retrieve" data-edge-key="2" data-edge-id="retrieve" data-composition-points="570,364;570,460" data-composition-crossover="halo" data-composition-independent="true" d="M 570 364 L 570 460" class="a-default" data-animate="edge" style="--step:2" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:3">
           <path data-graph-role="automatic-crossover-underlay" d="M 650 325 L 770 325" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="api" data-edge-to="llm" data-edge-label="answer with context" data-edge-key="3" data-edge-id="answer-ctx" data-composition-points="650,325;770,325" data-composition-crossover="halo" data-composition-independent="true" d="M 650 325 L 770 325" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-edge-from="api" data-edge-to="llm" data-edge-label="answer with context" data-edge-key="3" data-edge-id="answer-ctx" data-composition-points="650,325;770,325" data-composition-crossover="halo" data-composition-independent="true" d="M 650 325 L 770 325" class="a-default" data-animate="edge" style="--step:3" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
-        <path data-edge-from="llm" data-edge-to="web" data-edge-label="answer [1][2] + timing" data-edge-key="4" data-edge-id="answer-back" data-composition-points="860,300;860,230;315,230;315,300" d="M 860 300 L 860 238 Q 860 230 852 230 L 323 230 Q 315 230 315 238 L 315 300" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="llm" data-edge-to="web" data-edge-label="answer [1][2] + timing" data-edge-key="4" data-edge-id="answer-back" data-composition-points="860,300;860,230;315,230;315,300" d="M 860 300 L 860 238 Q 860 230 852 230 L 323 230 Q 315 230 315 238 L 315 300" class="a-default" data-animate="edge" style="--step:4" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <g data-graph-role="automatic-crossover" style="--step:5">
           <path data-graph-role="automatic-crossover-underlay" d="M 370 492 L 490 492" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="ingest" data-edge-to="qdrant" data-edge-label="upsert chunks" data-edge-key="5" data-edge-id="upsert" data-composition-points="370,492;490,492" data-composition-crossover="halo" data-composition-independent="true" d="M 370 492 L 490 492" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-edge-from="ingest" data-edge-to="qdrant" data-edge-label="upsert chunks" data-edge-key="5" data-edge-id="upsert" data-composition-points="370,492;490,492" data-composition-crossover="halo" data-composition-independent="true" d="M 370 492 L 490 492" class="a-default" data-animate="edge" style="--step:5" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:6">
           <path data-graph-role="automatic-crossover-underlay" d="M 690 492 L 678 492 Q 670 492 670 484 L 670 347 Q 670 339 662 339 L 650 339" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="evals" data-edge-to="api" data-edge-label="gates prompt changes" data-edge-key="6" data-edge-id="gate" data-composition-points="690,492;670,492;670,339;650,339" data-composition-crossover="halo" data-composition-independent="true" d="M 690 492 L 678 492 Q 670 492 670 484 L 670 347 Q 670 339 662 339 L 650 339" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-edge-from="evals" data-edge-to="api" data-edge-label="gates prompt changes" data-edge-key="6" data-edge-id="gate" data-composition-points="690,492;670,492;670,339;650,339" data-composition-crossover="halo" data-composition-independent="true" d="M 690 492 L 678 492 Q 670 492 670 484 L 670 347 Q 670 339 662 339 L 650 339" class="a-dashed" data-animate="edge" style="--step:6" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
 
         <!-- Components -->
         <g id="node-visitor" data-node-id="visitor" data-node-label="Recruiter / user" tabindex="0" role="button" aria-label="Focus Recruiter / user, browser, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="browser" data-node-context="Architecture component">
           <title>Recruiter / user · browser · Architecture component</title>
           <rect x="40" y="300" width="140" height="60" rx="6" class="c-mask"/>
-          <rect x="40" y="300" width="140" height="60" rx="6" class="c-external" stroke-width="1.5"/>
+          <rect x="40" y="300" width="140" height="60" rx="6" class="c-external" data-animate="node" style="--step:0" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(46 306) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
@@ -4908,7 +4908,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <g id="node-web" data-node-id="web" data-node-label="Next.js demo" tabindex="0" role="button" aria-label="Focus Next.js demo, Vercel · EN/ES toggle, Vercel" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="Vercel · EN/ES toggle" data-node-context="Vercel">
           <title>Next.js demo · Vercel · EN/ES toggle · Vercel</title>
           <rect x="240" y="300" width="150" height="64" rx="6" class="c-mask"/>
-          <rect x="240" y="300" width="150" height="64" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <rect x="240" y="300" width="150" height="64" rx="6" class="c-frontend" data-animate="node" style="--step:1" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(246 306) scale(0.6875)">
             <rect x="2" y="3" width="12" height="10" rx="2"/>
             <path d="M2 6.5h12"/>
@@ -4922,7 +4922,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <g id="node-api" data-node-id="api" data-node-label="FastAPI /ask" tabindex="0" role="button" aria-label="Focus FastAPI /ask, Render free · ?lang=en|es, Render · free tier" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Render free · ?lang=en|es" data-node-context="Render · free tier">
           <title>FastAPI /ask · Render free · ?lang=en|es · Render · free tier</title>
           <rect x="490" y="300" width="160" height="64" rx="6" class="c-mask"/>
-          <rect x="490" y="300" width="160" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
+          <rect x="490" y="300" width="160" height="64" rx="6" class="c-backend" data-animate="node" style="--step:2" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(496 306) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
@@ -4933,7 +4933,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <g id="node-llm" data-node-id="llm" data-node-label="LLM chain" tabindex="0" role="button" aria-label="Focus LLM chain, gemini → nim → router → extractive, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="gemini → nim → router → extractive" data-node-context="Architecture component">
           <title>LLM chain · gemini → nim → router → extractive · Architecture component</title>
           <rect x="770" y="300" width="180" height="64" rx="6" class="c-mask"/>
-          <rect x="770" y="300" width="180" height="64" rx="6" class="c-external" stroke-width="1.5"/>
+          <rect x="770" y="300" width="180" height="64" rx="6" class="c-external" data-animate="node" style="--step:4" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(776 306) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
@@ -4945,7 +4945,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <g id="node-qdrant" data-node-id="qdrant" data-node-label="Qdrant Cloud" tabindex="0" role="button" aria-label="Focus Qdrant Cloud, docs_en / docs_es, Qdrant Cloud" aria-pressed="false" data-node-kind="database" data-node-sublabel="docs_en / docs_es" data-node-context="Qdrant Cloud">
           <title>Qdrant Cloud · docs_en / docs_es · Qdrant Cloud</title>
           <rect x="490" y="460" width="160" height="64" rx="6" class="c-mask"/>
-          <rect x="490" y="460" width="160" height="64" rx="6" class="c-database" stroke-width="1.5"/>
+          <rect x="490" y="460" width="160" height="64" rx="6" class="c-database" data-animate="node" style="--step:3" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(496 466) scale(0.6875)">
             <ellipse cx="8" cy="4" rx="5" ry="2"/>
             <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
@@ -4957,7 +4957,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <g id="node-ingest" data-node-id="ingest" data-node-label="ingest (offline)" tabindex="0" role="button" aria-label="Focus ingest (offline), 26 PDFs → chunk → embed, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="26 PDFs → chunk → embed" data-node-context="Architecture component">
           <title>ingest (offline) · 26 PDFs → chunk → embed · Architecture component</title>
           <rect x="200" y="460" width="170" height="64" rx="6" class="c-mask"/>
-          <rect x="200" y="460" width="170" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
+          <rect x="200" y="460" width="170" height="64" rx="6" class="c-backend" data-animate="node" style="--step:5" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(206 466) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
@@ -4968,7 +4968,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <g id="node-evals" data-node-id="evals" data-node-label="evals gate" tabindex="0" role="button" aria-label="Focus evals gate, qa_es + qa_en → baseline, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="qa_es + qa_en → baseline" data-node-context="Architecture component">
           <title>evals gate · qa_es + qa_en → baseline · Architecture component</title>
           <rect x="690" y="460" width="170" height="64" rx="6" class="c-mask"/>
-          <rect x="690" y="460" width="170" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
+          <rect x="690" y="460" width="170" height="64" rx="6" class="c-backend" data-animate="node" style="--step:6" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(696 466) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
