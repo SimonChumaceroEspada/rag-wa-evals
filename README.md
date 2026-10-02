@@ -130,11 +130,11 @@ chain, scored by a deterministic scorer:
 
 | metric | score | n | method | date |
 |---|---|---|---|---|
-| faithfulness | **0.900** (was 0.733 at the start of the day) | 30 | live answers, heuristic scorer | 2026-10-01 |
-| context_precision | **0.798** (was 0.731 at the start of the day) | 30 | live answers, heuristic scorer | 2026-10-01 |
+| faithfulness | **0.833** (was 0.733 on Oct 1 morning) | 30 | live answers, heuristic scorer | 2026-10-02 |
+| context_precision | **0.818** (was 0.731 on Oct 1 morning) | 30 | live answers, heuristic scorer | 2026-10-02 |
 | judge faithfulness | **0.633** (preliminary — verdicts vary run to run, see below) | 30 | live answers, LLM judge (`gpt-oss-20b`, quote verified in code) | 2026-10-01 |
-| faithfulness (EN) | **1.000** | 30 | live answers, heuristic scorer (`--lang en`, `qa_en.jsonl`) | 2026-10-01 |
-| context_precision (EN) | **0.953** | 30 | live answers, heuristic scorer (`--lang en`, `qa_en.jsonl`) | 2026-10-01 |
+| faithfulness (EN) | **0.967** | 30 | live answers, heuristic scorer (`--lang en`, `qa_en.jsonl`) | 2026-10-02 |
+| context_precision (EN) | **0.900** | 30 | live answers, heuristic scorer (`--lang en`, `qa_en.jsonl`) | 2026-10-02 |
 
 The "was" column is the morning baseline. The day moved these numbers: the rerank scorer now
 actually runs (it used to fail on every request and hand back the raw RRF order), the answer
