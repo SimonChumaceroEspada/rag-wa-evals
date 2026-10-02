@@ -69,7 +69,10 @@ Actions cron (`.github/workflows/keep-alive.yml`) is only a third layer — meas
             gemini ─► nim ─► router ─► extractive (no key needed)
 ```
 
-<img alt="Request lifecycle drawing itself: retrieve → rerank → answer with provider fallback" src="docs/request-sequence-v2.gif" width="928" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/request-sequence-dark.svg" />
+  <img alt="Request lifecycle: retrieve → rerank → answer with provider fallback" src="docs/request-sequence-light.svg" width="990" />
+</picture>
 
 | file | role |
 |---|---|
