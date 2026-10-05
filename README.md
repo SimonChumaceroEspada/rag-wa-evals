@@ -96,7 +96,7 @@ python -m src.ingest --lang en
 python -m src.ingest --lang es
 
 uvicorn api.main:app --reload --port 8000          # GET /ask?q=...&lang=en
-pytest -q                                          # 56 tests
+pytest -q                                          # 59 tests
 python evals/run_ragas.py                          # writes evals/baseline.json
 ```
 
@@ -188,7 +188,7 @@ api/      FastAPI service (+ legacy static UI)
 src/      chunk · embed · ingest · hybrid · rerank
 data/     en/ es/ corpora (PDFs fetched, not committed)
 evals/    question sets, scorer, baselines
-tests/    pytest suite (56)
+tests/    pytest suite (59)
 web/      Next.js frontend on Vercel
 ```
 
