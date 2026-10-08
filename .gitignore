@@ -16,3 +16,10 @@ data/acme/
 data/acme-es/
 debug.log
 .archify/
+
+# derivados del corpus (no se commitean)
+evals/pdf_texts_*.json
+evals/*.final
+evals/*.bak
+evals/check_deployed_*.py
+evals/deployed_en_check*.json
