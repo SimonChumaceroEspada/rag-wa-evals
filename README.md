@@ -133,6 +133,14 @@ endpoint still answers through the extractive fallback, so the pipe is testable 
 (`evals/qa_es.jsonl`, `evals/qa_en.jsonl`), answered by the deployed
 chain, scored by a deterministic scorer:
 
+**Reproduce:**
+
+```bash
+docker compose up -d qdrant
+python evals/run_ragas.py --lang es    # Spanish baseline → evals/baseline.json
+python evals/run_ragas.py --lang en    # English mirror   → evals/baseline_en.json
+```
+
 | metric | score | n | set | method | date |
 |---|---|---|---|---|---|
 | faithfulness (ES) | **0.833** (was 0.733 on Oct 1 morning) | 30 | Spanish | live answers, heuristic scorer | 2026-10-02 |

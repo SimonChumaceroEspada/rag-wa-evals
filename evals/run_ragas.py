@@ -13,6 +13,7 @@ import datetime
 import json
 import pathlib
 import re
+import subprocess
 import sys
 import unicodedata
 
@@ -244,6 +245,14 @@ def main():
             hj = f"heuristico: faithfulness={f} | JUEZ: {j['verdict']}"
             print(hj.encode("ascii", "replace").decode())
     n = len(rows)
+    try:
+        git_sha = subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+    except Exception:
+        git_sha = ""
     out = {
         "faithfulness": round(f_sum / n, 3) if n else 0.0,
         "context_precision": round(c_sum / n, 3) if n else 0.0,
@@ -251,6 +260,7 @@ def main():
         "method": "live" if live_ok == n else "heuristic-offline",
         "live_answers": live_ok,
         "date": datetime.date.today().isoformat(),
+        "git_sha": git_sha,
     }
     if args.judge and j_n:
         out["judge_faithfulness"] = round(j_sum / j_n, 3)
