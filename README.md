@@ -6,6 +6,11 @@ two Qdrant collections, and every answer cites the sources it used (`[1][2]`).
 **Live demo:** <https://rag-wa-evals-web.vercel.app/> — toggle **EN / ES** in the UI.
 **API:** `https://rag-wa-evals.onrender.com/ask?q=What%20is%20the%20leave%20policy&lang=en`
 
+![A question, the answer, and the sources it cited](docs/demo.gif)
+
+The GIF is the real UI: the question goes in, the answer comes back with `[3]` inline and the
+retrieved `sources[]` listed below it.
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/architecture-dark.svg" />
   <img alt="System architecture: ingest → Qdrant → /ask → answer, gated by evals" src="docs/architecture-light.svg" width="990" />
@@ -24,7 +29,7 @@ prompt/model change.
 - **Verifiable answers** — `[1][2]` inline citations plus the retrieved `sources[]` with scores.
 - **Measured, not guessed** — `/ask` returns `timing` for every stage (embed / search / answer).
 - **Degrades instead of failing** — three LLM providers in a chain, then an extractive answer.
-- **Evaluated** — a 30-question set scores every change; see [Evaluations](#evaluations).
+- **Evaluated** — 60 questions (30 ES + 30 EN) score every change; see [Evaluations](#evaluations).
 
 ## Latency
 
@@ -128,13 +133,18 @@ endpoint still answers through the extractive fallback, so the pipe is testable 
 (`evals/qa_es.jsonl`, `evals/qa_en.jsonl`), answered by the deployed
 chain, scored by a deterministic scorer:
 
-| metric | score | n | method | date |
-|---|---|---|---|---|
-| faithfulness | **0.833** (was 0.733 on Oct 1 morning) | 30 | live answers, heuristic scorer | 2026-10-02 |
-| context_precision | **0.818** (was 0.731 on Oct 1 morning) | 30 | live answers, heuristic scorer | 2026-10-02 |
-| judge faithfulness | **0.633** (preliminary — verdicts vary run to run, see below) | 30 | live answers, LLM judge (`gpt-oss-20b`, quote verified in code) | 2026-10-01 |
-| faithfulness (EN) | **0.967** | 30 | live answers, heuristic scorer (`--lang en`, `qa_en.jsonl`) | 2026-10-02 |
-| context_precision (EN) | **0.900** | 30 | live answers, heuristic scorer (`--lang en`, `qa_en.jsonl`) | 2026-10-02 |
+| metric | score | n | set | method | date |
+|---|---|---|---|---|---|
+| faithfulness (ES) | **0.833** (was 0.733 on Oct 1 morning) | 30 | Spanish | live answers, heuristic scorer | 2026-10-02 |
+| context_precision (ES) | **0.818** (was 0.731 on Oct 1 morning) | 30 | Spanish | live answers, heuristic scorer | 2026-10-02 |
+| judge faithfulness (ES) | **0.633** (preliminary — verdicts vary run to run, see below) | 30 | Spanish | live answers, LLM judge (`gpt-oss-20b`, quote verified in code) | 2026-10-01 |
+| faithfulness (EN) | **0.967** | 30 | English mirror | live answers, heuristic scorer (`--lang en`, `qa_en.jsonl`) | 2026-10-02 |
+| context_precision (EN) | **0.900** | 30 | English mirror | live answers, heuristic scorer (`--lang en`, `qa_en.jsonl`) | 2026-10-02 |
+
+**Read the column, not the pair.** ES and EN are two different question sets (`qa_es.jsonl`,
+`qa_en.jsonl`), so `0.833` and `0.967` are not the same measurement drifting — they are the
+Spanish set and its English mirror. `run_ragas.py` defaults to `--lang es`, which is why the
+unqualified rows above are Spanish.
 
 The "was" column is the morning baseline. The day moved these numbers: the rerank scorer now
 actually runs (it used to fail on every request and hand back the raw RRF order), the answer
