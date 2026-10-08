@@ -28,3 +28,33 @@
 {"q": "¿Cuántos días de duelo corresponden por un familiar directo?", "expected": "hasta 10 días pagos por duelo", "source": "Leave_Policy.pdf"}
 {"q": "¿Tras cuántos años se accede al sabático y de cuánto es?", "expected": "5 años de antigüedad continua", "source": "Leave_Policy.pdf"}
 {"q": "¿En cuántos días hábiles debe aprobar el manager una solicitud en Workday?", "expected": "dentro de 2 días hábiles", "source": "Leave_Policy.pdf"}
+{"q": "¿Qué flujo de autenticación OAuth 2.0 utiliza la API de AcmeTech para integraciones servidor a servidor?", "expected": "el flujo oauth 2.0 client credentials para integraciones de servidor a servidor", "source": "API_Documentation.pdf"}
+{"q": "¿Cuál es el límite de solicitudes por minuto para cuentas del nivel Standard en la API?", "expected": "100 solicitudes por minuto por clave de API", "source": "API_Documentation.pdf"}
+{"q": "¿Cuántos servicios desplegados de forma independiente componen la arquitectura de microservicios de AcmeTech?", "expected": "aproximadamente 45 servicios desplegados de forma independiente", "source": "Architecture_Guide.pdf"}
+{"q": "¿Qué especificación siguen los eventos de dominio publicados por los servicios en la arquitectura orientada a eventos?", "expected": "especificación CloudEvents", "source": "Architecture_Guide.pdf"}
+{"q": "¿Qué cobertura mínima de pruebas unitarias se exige para todo nuevo código de backend?", "expected": "un mínimo del 80 % de cobertura de pruebas unitarias", "source": "Coding_Standards.pdf"}
+{"q": "¿Qué porcentaje de canary inicial se usa en los despliegues progresivos de producción con ArgoCD?", "expected": "5 % canario durante 15 minutos", "source": "Deployment_Guide.pdf"}
+{"q": "¿En cuántos subequipos se organiza el departamento de Ingeniería de AcmeTech?", "expected": "4 subequipos", "source": "Engineering_Handbook.pdf"}
+{"q": "¿Cuál es el límite mensual estándar para comidas individuales durante viajes?", "expected": "$50 por día para comidas individuales durante viajes", "source": "Expense_Policy.pdf"}
+{"q": "¿En cuántos días deben presentarse los gastos a través de Ramp tras incurrirse?", "expected": "dentro de los 30 días siguientes a la fecha en que se incurra en ellos", "source": "Expense_Policy.pdf"}
+{"q": "¿Qué umbral de valor de contrato requiere aprobación del CFO y, para contratos plurianuales, del CEO?", "expected": "aprobación del director financiero (cfo) y, para más de $100,000 contratos plurianuales, del director general (ceo)", "source": "Procurement.pdf"}
+{"q": "¿Cuál es la dieta diaria de comidas que se aplica cuando no se presentan recibos detallados?", "expected": "$85 por día", "source": "Travel_Policy.pdf"}
+{"q": "¿Qué porcentaje de la prima del empleado cubre AcmeTech para el plan de salud Gold PPO?", "expected": "el 100% de la prima del empleado", "source": "Benefits_Guide.pdf"}
+{"q": "¿Cuántas semanas de licencia parental totalmente remunerada reciben los progenitores gestantes?", "expected": "16 semanas", "source": "Benefits_Guide.pdf"}
+{"q": "¿En qué año fue fundada AcmeTech Solutions Inc.?", "expected": "2015", "source": "Employee_Handbook.pdf"}
+{"q": "¿Cuáles son los días fijos designados para la asistencia presencial de empleados híbridos?", "expected": "el martes y el jueves son los días fijos designados", "source": "HR_Policy.pdf"}
+{"q": "¿Qué certificaciones mantiene actualmente AcmeTech según el Marco de Cumplimiento?", "expected": "certificación SOC 2 Tipo II (auditada anualmente por un tercero independiente), la certificación ISO 27001", "source": "Compliance.pdf"}
+{"q": "¿Cuál es el requisito de finalización de la formación anual obligatoria de cumplimiento?", "expected": "100 % antes del 31 de diciembre de cada año", "source": "Compliance.pdf"}
+{"q": "¿Durante cuántos años subsisten las obligaciones de confidencialidad en la plantilla estándar de NDA?", "expected": "3 años desde la fecha de divulgación", "source": "NDA.pdf"}
+{"q": "¿Durante cuánto tiempo se conservan los datos de tickets de soporte?", "expected": "3 años", "source": "Privacy_Policy.pdf"}
+{"q": "¿Cuántas veces se reintentan automáticamente las ejecuciones fallidas de flujos de trabajo?", "expected": "hasta 3 veces", "source": "FAQ.pdf"}
+{"q": "¿Qué estándar de cifrado se usa para los datos en reposo?", "expected": "AES-256", "source": "FAQ.pdf"}
+{"q": "¿Cuántas integraciones prediseñadas soporta la plataforma de AcmeTech?", "expected": "más de 200 integraciones prediseñadas", "source": "Product_Overview.pdf"}
+{"q": "¿En qué versión se introdujo la sincronización bidireccional en tiempo real para Salesforce y NetSuite?", "expected": "Versión 3.2", "source": "Release_Notes.pdf"}
+{"q": "¿Cuántos nodos puede incluir un flujo de trabajo en el nivel Growth?", "expected": "hasta 50 nodos", "source": "User_Guide.pdf"}
+{"q": "¿Cada cuánto se realizan revisiones de acceso para sistemas con datos Confidenciales o Restringidos?", "expected": "trimestrales", "source": "Access_Control.pdf"}
+{"q": "¿Cuál es el Objetivo de tiempo de recuperación (RTO) de AcmeTech para sistemas de Nivel 1?", "expected": "4 horas", "source": "Disaster_Recovery.pdf"}
+{"q": "¿En cuántos minutos debe reunirse el Equipo de respuesta a incidentes tras declarar un incidente SEV1?", "expected": "15 minutos", "source": "Incident_Response.pdf"}
+{"q": "¿Qué método de autenticación multifactor no se permite según la política de seguridad?", "expected": "MFA por SMS", "source": "Security_Policy.pdf"}
+{"q": "¿En qué tres regiones de AWS se extiende el entorno de producción según la Guía de Arquitectura?", "expected": "us-east-1, eu-west-1, ap-southeast-1", "source": "Architecture_Guide.pdf"}
+{"q": "¿Qué tipo de gasto no es reembolsable según la Política de Gastos?", "expected": "alcohol en comidas sin clientes.", "source": "Expense_Policy.pdf"}

@@ -1,9 +1,9 @@
 {"q": "What monthly uptime does AcmeTech guarantee to Enterprise customers?", "expected": "99.9% monthly uptime", "source": "SLA.pdf"}
 {"q": "What uptime does AcmeTech guarantee for the Growth tier?", "expected": "99.5%", "source": "SLA.pdf"}
 {"q": "Does the Starter tier include a formal uptime guarantee?", "expected": "does not include a formal uptime guarantee", "source": "SLA.pdf"}
-{"q": "How fast must Support respond to a P1 ticket from an Enterprise customer?", "expected": "P1: 1 hour", "source": "SLA.pdf"}
-{"q": "What is the P2 response time for Enterprise?", "expected": "P2: 4 hours", "source": "SLA.pdf"}
-{"q": "A Growth customer with a P1 \u2014 how fast do they get a response?", "expected": "P1: 4 hours", "source": "SLA.pdf"}
+{"q": "How fast must Support respond to a P1 ticket from an Enterprise customer?", "expected": "P1 - 1 hour", "source": "SLA.pdf"}
+{"q": "What is the P2 response time for Enterprise?", "expected": "P2 - 4 hours", "source": "SLA.pdf"}
+{"q": "A Growth customer with a P1 — how fast do they get a response?", "expected": "P1 - 4 hours", "source": "SLA.pdf"}
 {"q": "What resolution target does AcmeTech have for 90% of Enterprise P1s?", "expected": "within 4 hours", "source": "SLA.pdf"}
 {"q": "How large are the service credits for Enterprise if uptime fails?", "expected": "5% to 30%", "source": "SLA.pdf"}
 {"q": "Within what deadline must a service credit be requested?", "expected": "within 30 days", "source": "SLA.pdf"}
@@ -11,7 +11,7 @@
 {"q": "What is a P2 (High) ticket?", "expected": "major feature broken with no workaround", "source": "Support_SOP.pdf"}
 {"q": "Which channels receive customer tickets?", "expected": "in-app chat, email (support@acmetech.com), and the Enterprise dedicated Slack channel", "source": "Support_SOP.pdf"}
 {"q": "How often must an open P1 or P2 ticket update the customer?", "expected": "at least once every 24 hours", "source": "Support_SOP.pdf"}
-{"q": "How long is new support agent certification?", "expected": "3 weeks", "source": "Support_SOP.pdf"}
+{"q": "How long is new support agent certification?", "expected": "3-week certification program", "source": "Support_SOP.pdf"}
 {"q": "What minimum score does agent certification require?", "expected": "85% or higher", "source": "Support_SOP.pdf"}
 {"q": "What percentage of tickets does the QA lead review each month?", "expected": "5%", "source": "Support_SOP.pdf"}
 {"q": "What is AcmeTech's global CSAT goal?", "expected": "90% or higher", "source": "Support_SOP.pdf"}
@@ -28,3 +28,33 @@
 {"q": "How many bereavement days for an immediate family member?", "expected": "up to 10 paid days of bereavement leave", "source": "Leave_Policy.pdf"}
 {"q": "After how many years do you qualify for sabbatical and how long is it?", "expected": "5 years of continuous tenure", "source": "Leave_Policy.pdf"}
 {"q": "Within how many business days must a manager approve a Workday request?", "expected": "within 2 business days", "source": "Leave_Policy.pdf"}
+{"q": "What OAuth 2.0 flow does the AcmeTech API use for server-to-server integrations?", "expected": "The API uses OAuth 2.0 Client Credentials flow for server-to-server integrations.", "source": "API_Documentation.pdf"}
+{"q": "What is the rate limit for Standard tier accounts on the API?", "expected": "Standard tier accounts are limited to 100 requests per minute per API key.", "source": "API_Documentation.pdf"}
+{"q": "How many independently deployed services comprise AcmeTech's microservices architecture?", "expected": "approximately 45 independently deployed services", "source": "Architecture_Guide.pdf"}
+{"q": "What specification do the domain events published by services follow in the event-driven architecture?", "expected": "CloudEvents specification", "source": "Architecture_Guide.pdf"}
+{"q": "What minimum unit test coverage is required for all new backend code?", "expected": "All new backend code requires a minimum of 80% unit test coverage, verified automatically in CI via Codecov.", "source": "Coding_Standards.pdf"}
+{"q": "What initial canary percentage is used in progressive production deployments with ArgoCD?", "expected": "5% canary for 15 minutes", "source": "Deployment_Guide.pdf"}
+{"q": "How many sub-teams is the AcmeTech Engineering department organized into?", "expected": "Engineering is organized into 4 sub-teams", "source": "Engineering_Handbook.pdf"}
+{"q": "What is the standard monthly limit for individual meals while traveling?", "expected": "$50/day for individual meals while traveling", "source": "Expense_Policy.pdf"}
+{"q": "Within how many days must expenses be submitted through Ramp after being incurred?", "expected": "within 30 days of being incurred", "source": "Expense_Policy.pdf"}
+{"q": "What contract value threshold requires CFO approval and, for multi-year contracts, CEO approval?", "expected": "Above $100,000 - CFO and, for multi-year contracts, CEO approval.", "source": "Procurement.pdf"}
+{"q": "What is the daily meal per diem that applies when itemized receipts are not submitted?", "expected": "A daily meal per diem of $85 applies when itemized receipts are not submitted.", "source": "Travel_Policy.pdf"}
+{"q": "What percentage of the employee premium does AcmeTech cover for the Gold PPO health plan?", "expected": "100% of the employee premium", "source": "Benefits_Guide.pdf"}
+{"q": "How many weeks of fully paid parental leave do birthing parents receive?", "expected": "16 weeks of fully paid leave", "source": "Benefits_Guide.pdf"}
+{"q": "In what year was AcmeTech Solutions Inc. founded?", "expected": "2015", "source": "Employee_Handbook.pdf"}
+{"q": "What are the designated anchor days for hybrid employees?", "expected": "Tuesday and Thursday are designated anchor days", "source": "HR_Policy.pdf"}
+{"q": "What certifications does AcmeTech currently maintain according to the Compliance Framework?", "expected": "AcmeTech maintains SOC 2 Type II certification (audited annually by an independent third party), ISO 27001 certification", "source": "Compliance.pdf"}
+{"q": "What is the completion requirement for mandatory annual compliance training?", "expected": "completion requirement of 100% by December 31 each year", "source": "Compliance.pdf"}
+{"q": "For how many years do the confidentiality obligations survive in the standard NDA template?", "expected": "3 years from the date of disclosure", "source": "NDA.pdf"}
+{"q": "How long is support ticket data retained?", "expected": "Support ticket data is retained for 3 years.", "source": "Privacy_Policy.pdf"}
+{"q": "How many times are failed workflow runs automatically retried?", "expected": "Failed workflow runs are automatically retried up to 3 times with exponential backoff.", "source": "FAQ.pdf"}
+{"q": "What encryption standard is used for data at rest?", "expected": "at rest using AES-256", "source": "FAQ.pdf"}
+{"q": "How many pre-built integrations does the AcmeTech platform support?", "expected": "over 200 pre-built integrations", "source": "Product_Overview.pdf"}
+{"q": "In which version was real-time bidirectional synchronization for Salesforce and NetSuite introduced?", "expected": "Launched AcmeSync real-time bi-directional sync for Salesforce and NetSuite.", "source": "Release_Notes.pdf"}
+{"q": "How many nodes can a workflow include on the Growth tier?", "expected": "up to 50 nodes on the Growth tier", "source": "User_Guide.pdf"}
+{"q": "How often are access reviews conducted for systems handling Confidential or Restricted data?", "expected": "Quarterly access reviews are conducted for all systems classified as handling Confidential or Restricted data.", "source": "Access_Control.pdf"}
+{"q": "What is AcmeTech's Recovery Time Objective (RTO) for Tier 1 systems?", "expected": "4 hours", "source": "Disaster_Recovery.pdf"}
+{"q": "In how many minutes must the Incident Response Team convene after declaring a SEV1 incident?", "expected": "For SEV1 incidents, the IRT must convene within 15 minutes of declaration.", "source": "Incident_Response.pdf"}
+{"q": "What multi-factor authentication method is not permitted according to the security policy?", "expected": "SMS-based MFA is not permitted", "source": "Security_Policy.pdf"}
+{"q": "In which three AWS regions does the production environment span according to the Architecture Guide?", "expected": "us-east-1, eu-west-1, ap-southeast-1", "source": "Architecture_Guide.pdf"}
+{"q": "What type of expense is not reimbursable according to the Expense Policy?", "expected": "Alcohol at non-client meals.", "source": "Expense_Policy.pdf"}
