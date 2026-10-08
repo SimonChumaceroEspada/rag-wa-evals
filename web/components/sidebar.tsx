@@ -17,8 +17,8 @@ export const Sidebar = () => {
   const { lang, send, reset, sidebar } = useUi();
   const t =
     lang === "es"
-      ? { new: "Nuevo chat", demo: "Preguntas demo", foot: "RAG sobre 52 PDFs · Ragas baseline" }
-      : { new: "New chat", demo: "Demo questions", foot: "RAG over 52 PDFs · Ragas baseline" };
+      ? { new: "Nuevo chat", demo: "Preguntas demo", foot: "RAG sobre 26 PDFs × 2 idiomas = 52 documentos · Ragas baseline" }
+      : { new: "New chat", demo: "Demo questions", foot: "RAG over 26 PDFs × 2 languages = 52 documents · Ragas baseline" };
 
   if (!sidebar) return null;
 

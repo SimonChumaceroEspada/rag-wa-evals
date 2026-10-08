@@ -186,7 +186,7 @@ heuristic stays the stable headline metric; the judge is directional signal only
 
 AcmeTech is a fictional company from the public dataset
 [maruf6890/acmetech-enterprise-rag-dataset](https://github.com/maruf6890/acmetech-enterprise-rag-dataset)
-— 26 PDFs across 7 departments, plus a manifest.
+— 26 source PDFs × 2 languages = 52 indexed documents across 7 departments, plus a manifest.
 
 > **Permission:** granted verbally by the author on 2026-09-24 (arranged by Simón), with
 > attribution and link as given above. The original PDFs are **not committed** (heavy
