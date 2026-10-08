@@ -124,14 +124,57 @@ def _clip(text: str, limit: int = 400) -> str:
     return text[:limit].rsplit(" ", 1)[0].rstrip(" ,;:") + "…"
 
 
+# --- Identidad y preguntas fuera del corpus ---------------------------------
+# Respuestas canónicas: se devuelven tal cual, sin citas y sin depender del LLM.
+NO_INFO = {
+    "es": "No tengo esa información en el corpus.",
+    "en": "I don't have that information in the corpus.",
+}
+IDENTITY = {
+    "es": (
+        "Soy el asistente de conocimiento de AcmeTech Solutions: respondo preguntas sobre los "
+        "documentos internos de la empresa (RRHH, Ingeniería, Seguridad, Producto, Finanzas, "
+        "Atención al Cliente y Legal), citando la fuente."
+    ),
+    "en": (
+        "I am AcmeTech Solutions' knowledge assistant: I answer questions about the company's "
+        "internal documents (HR, Engineering, Security, Product, Finance, Customer Support and "
+        "Legal), citing the source."
+    ),
+}
+# Preguntas sobre el propio asistente. Deliberadamente acotado para no secuestrar
+# preguntas reales del corpus.
+IDENTITY_RE = re.compile(
+    r"(who are you|what are you|what do you do|what can you do|how can you help|"
+    r"who is this assistant|qu[eé] es este asistente|qui[eé]n eres|qui[eé]n sos|"
+    r"qu[eé] sos|qu[eé] hac[eé]s|qu[eé] puedes hacer|qu[eé] pod[eé]s hacer|"
+    r"c[oó]mo (me )?(puedes|pod[eé]s) ayudar|en qu[eé] me puedes ayudar|"
+    r"para qu[eé] sirves|help me understand what you|what is this (app|assistant))",
+    re.IGNORECASE,
+)
+
+
+def is_no_info(text: str, lang: str) -> bool:
+    """¿Es la respuesta canónica de 'no está en el corpus' o de identidad?"""
+    t = _norm(text or "")
+    return any(
+        t.startswith(_norm(c)) or _norm(c) in t
+        for c in (NO_INFO.get(lang, NO_INFO["en"]), IDENTITY.get(lang, IDENTITY["en"]))
+    )
+
+
 def extractive(lang: str, q: str, context: str) -> str:
     """Fallback sin LLM: frases del chunk top-1, priorizando las que solapan con la pregunta."""
     first = _norm(context.split("\n")[0] if context else "")
     sents = [s for s in _SENT_SPLIT.split(first) if s.strip()]
     terms = set(_WORD.findall((q or "").lower()))
     scored = [(len(terms & set(_WORD.findall(s.lower()))), s) for s in sents]
-    picked = [s for sc, s in scored if sc > 0][:3] or sents[:2]
-    body = _clip(" ".join(picked) if picked else first)
+    picked = [s for sc, s in scored if sc > 0][:3]
+    if not picked:
+        # Nada del contexto se relaciona con la pregunta. No volcamos el chunk crudo:
+        # decir que no está es mejor que citar un fragmento que no responde.
+        return NO_INFO.get(lang, NO_INFO["en"])
+    body = _clip(" ".join(picked))
     head = "Según las fuentes" if lang == "es" else "According to the sources"
     return f"{head} [1]: {body} [1]"
 
@@ -172,7 +215,12 @@ def llm_answer(q: str, lang: str, context: str) -> str:
         "Never use LaTeX or math markup ($…$, \\ge, \\times): write plain Unicode (≥, ×, →). "
         "Your FIRST line must be the final answer itself: "
         "no preamble, no thinking process, no numbered steps, no bullet lists. "
-        "At most 120 words."
+        "At most 120 words. "
+        "EXCEPTION 1: if the question asks who you are or what you can do, answer exactly this "
+        f'and nothing else, without citations: "{IDENTITY.get(lang, IDENTITY["en"])}". '
+        "EXCEPTION 2: if the context does not contain the answer, answer exactly this and nothing "
+        f'else, without citations: "{NO_INFO.get(lang, NO_INFO["en"])}". '
+        "Do not dump a chunk that does not answer the question."
     )
     user = f"Q: {q}\nContext:\n{context}"
     tokens = int(os.getenv("ANSWER_MAX_TOKENS", "400"))
@@ -183,7 +231,9 @@ def llm_answer(q: str, lang: str, context: str) -> str:
             print(f"ask: {name} falló ({e.__class__.__name__}), pruebo el siguiente")
             continue
         clean = strip_reasoning(ans)
-        if clean and not answer_leaked(clean) and re.search(r"\[\d+\]", clean):
+        if clean and not answer_leaked(clean) and (
+            re.search(r"\[\d+\]", clean) or is_no_info(clean, lang)
+        ):
             if clean != ans:
                 print(f"ask: {name} filtró razonamiento, conservé la respuesta final")
             print(f"ask servido por: {name}")
@@ -203,6 +253,18 @@ def ask(q: str, lang: str = "en"):
     if key in _ASK_CACHE:
         print("ask: caché exacta")
         return _ASK_CACHE[key]
+    if IDENTITY_RE.search(q):
+        # Pregunta sobre el propio asistente: respuesta canónica, sin retrieval, sin LLM
+        # y sin gastar cuota. Siempre igual, sin importar qué proveedor esté disponible.
+        out = {
+            "answer": IDENTITY.get(lang, IDENTITY["en"]),
+            "sources": [],
+            "lang": lang,
+            "timing": {"embed": 0.0, "search": 0.0, "answer": 0.0, "total": 0.0},
+        }
+        _ASK_CACHE[key] = out
+        print("ask: identidad (respuesta canónica, sin LLM)")
+        return out
     col = f"docs_{lang}"
     t0 = time.perf_counter()
     client = get_client()
